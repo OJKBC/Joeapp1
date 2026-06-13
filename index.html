@@ -69,9 +69,11 @@
 
   /* title */
   #title {
-    justify-content: center; gap: 16px; overflow-y: auto;
-    background-image: url('images/home_bg.png');
-    background-size: cover; background-position: center;
+    justify-content: flex-end; gap: 12px; overflow-y: auto;
+    padding-bottom: 26px;
+    background:
+      linear-gradient(to top, rgba(13,8,30,.80) 5%, rgba(13,8,30,.30) 24%, rgba(13,8,30,0) 46%),
+      url('images/home2.png') center / cover no-repeat;
   }
   .game-logo {
     font-size: clamp(28px, 9vw, 48px);
@@ -372,7 +374,6 @@
 
   <!-- TITLE -->
   <section id="title" class="screen active">
-    <div class="game-logo">ひらがな<br><span class="pop">ばとる！</span></div>
     <button class="btn" id="startBtn">はじめる</button>
     <div class="title-menu">
       <button class="btn btn-sub" id="zukanBtn">📖 ようかいずかん</button>
