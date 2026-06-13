@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>ひらがなバトル！</title>
+<title>ひらがなばとる！</title>
 <style>
   :root {
     --night-1: #221551;
@@ -367,26 +367,26 @@
 
   <!-- TITLE -->
   <section id="title" class="screen active">
-    <div class="game-logo">ひらがな<br><span class="pop">バトル！</span></div>
+    <div class="game-logo">ひらがな<br><span class="pop">ばとる！</span></div>
     <div class="title-heroes" id="titleHeroes"></div>
     <button class="btn" id="startBtn">はじめる</button>
     <div class="title-menu">
       <button class="btn btn-sub" id="zukanBtn">📖 ようかいずかん</button>
-      <button class="btn btn-sub" id="bookBtn">🌈 シールちょう</button>
+      <button class="btn btn-sub" id="bookBtn">🌈 しーるちょう</button>
     </div>
   </section>
 
   <!-- HERO SELECT -->
   <section id="select" class="screen">
-    <div class="heads">きみの ヒーローを えらんでね</div>
+    <div class="heads">きみの ひーろーを えらんでね</div>
     <div class="hero-grid" id="heroGrid"></div>
-    <button class="btn" id="goBattle" disabled style="opacity:.5">バトルへ！</button>
+    <button class="btn" id="goBattle" disabled style="opacity:.5">ばとるへ！</button>
   </section>
 
   <!-- BATTLE -->
   <section id="battle" class="screen">
     <div class="battle-top">
-      <button class="home-btn" id="homeBtn" aria-label="ホームにもどる">🏠</button>
+      <button class="home-btn" id="homeBtn" aria-label="ほーむにもどる">🏠</button>
     </div>
     <div class="field">
       <div class="info enemy">
@@ -399,7 +399,7 @@
       <div class="platform hero-plat"></div>
       <div class="mon hero-mon" id="heroMon">🦸</div>
       <div class="info hero">
-        <div class="row1"><span id="heroName">ヒーロー</span><span class="lv">Lv <span id="heroLv">1</span></span></div>
+        <div class="row1"><span id="heroName">ひーろー</span><span class="lv">Lv <span id="heroLv">1</span></span></div>
         <div class="hearts" id="hearts"></div>
         <div class="score">⭐ <span id="score">0</span></div>
       </div>
@@ -419,13 +419,13 @@
     <div class="big-emoji">😵</div>
     <div class="end-title">やられた〜！</div>
     <div class="score-pill">⭐ <span id="overScore">0</span> てん</div>
-    <button class="btn" id="retryBtn">もういちど バトル！</button>
+    <button class="btn" id="retryBtn">もういちど ばとる！</button>
   </section>
 
   <!-- CLEARED -->
   <section id="cleared" class="screen">
     <div class="big-emoji">🏆</div>
-    <div class="end-title">ぜんぶ クリア！</div>
+    <div class="end-title">ぜんぶ くりあ！</div>
     <div class="score-pill">⭐ <span id="clearScore">0</span> てん</div>
     <button class="btn" id="againBtn">もういちど あそぶ</button>
   </section>
@@ -433,7 +433,7 @@
   <!-- STICKER PICK（レベルクリアで1枚えらぶ） -->
   <section id="stickerPick" class="screen">
     <div class="big-emoji">🎁</div>
-    <div class="end-title">シールを 1まい えらんでね</div>
+    <div class="end-title">しーるを 1まい えらんでね</div>
     <div class="sticker-row" id="stickerChoices"></div>
   </section>
 
@@ -446,7 +446,7 @@
 
   <!-- シールちょう -->
   <section id="stickerBook" class="screen sub-screen">
-    <div class="sub-head">🌈 シールちょう</div>
+    <div class="sub-head">🌈 しーるちょう</div>
     <div class="book-grid" id="bookGrid"></div>
     <button class="btn" id="bookBack">もどる</button>
   </section>

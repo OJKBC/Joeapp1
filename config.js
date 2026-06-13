@@ -55,21 +55,21 @@ const LEVELS = [
 
 /* ヒーロー（タイトル後の選択肢） */
 const HEROES = [
-  {face:'🔥', nm:'ファイア',     img:'images/fire_hero_512.webp'},
-  {face:'⚡', nm:'サンダー',     img:'images/lightning_hero_512.webp'},
-  {face:'❄️', nm:'アイス',       img:'images/water_ice_hero_512.webp'},
-  {face:'🥷', nm:'かぜニンジャ', img:'images/wind_ninja_hero_512.webp'}
+  {face:'🔥', nm:'ふぁいあ',     img:'images/fire_hero_512.webp'},
+  {face:'⚡', nm:'さんだー',     img:'images/lightning_hero_512.webp'},
+  {face:'❄️', nm:'あいす',       img:'images/water_ice_hero_512.webp'},
+  {face:'🥷', nm:'かぜにんじゃ', img:'images/wind_ninja_hero_512.webp'}
 ];
 
 /* 妖怪（レベルごとに切り替わる。id は図鑑の保存キーに使う） */
 const YOKAI = [
-  {id:'kodamaru',       face:'🌳', nm:'コダマル',       img:'images/kodamaru_512.png'},
-  {id:'patamon',        face:'🐦', nm:'パタモン',       img:'images/patamon_512.png'},
-  {id:'moyakage',       face:'🌫️', nm:'モヤカゲ',       img:'images/moyakage_512.png'},
-  {id:'shuppou',        face:'🚂', nm:'シュッポウ',     img:'images/shuppou_512.png'},
-  {id:'noroizao',       face:'🪄', nm:'ノロイザオ',     img:'images/noroizao_512.png'},
-  {id:'kyouran_gitsune',face:'🦊', nm:'キョウランギツネ',img:'images/kyouran_gitsune_512.png'},
-  {id:'garan_oni',      face:'👹', nm:'ガランおに',     img:'images/garan_oni_512.png'}
+  {id:'kodamaru',       face:'🌳', nm:'こだまる',       img:'images/kodamaru_512.png'},
+  {id:'patamon',        face:'🐦', nm:'ぱたもん',       img:'images/patamon_512.png'},
+  {id:'moyakage',       face:'🌫️', nm:'もやかげ',       img:'images/moyakage_512.png'},
+  {id:'shuppou',        face:'🚂', nm:'しゅっぽう',     img:'images/shuppou_512.png'},
+  {id:'noroizao',       face:'🪄', nm:'のろいざお',     img:'images/noroizao_512.png'},
+  {id:'kyouran_gitsune',face:'🦊', nm:'きょうらんぎつね',img:'images/kyouran_gitsune_512.png'},
+  {id:'garan_oni',      face:'👹', nm:'がらんおに',     img:'images/garan_oni_512.png'}
 ];
 
 /* レベルクリアで1枚もらえるシール（自分で1枚えらぶ） */

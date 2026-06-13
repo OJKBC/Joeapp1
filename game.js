@@ -166,7 +166,7 @@ function choose(btn, correct){
     if(state.yokaiHp <= 0){
       registerYokai(state.yokai, state.levelIdx);          // 図鑑に登録
       const wasLast = state.levelIdx >= LEVELS.length - 1;
-      flashText(wasLast ? 'ぜんぶ クリア！' : 'やっつけた！','var(--gold)');
+      flashText(wasLast ? 'ぜんぶ くりあ！' : 'やっつけた！','var(--gold)');
       setTimeout(()=>{ if(sid !== state.session) return; openStickerPick(wasLast); }, 900);  // シールを1枚えらぶ
       return;
     } else {
@@ -347,7 +347,7 @@ function buildZukan(){
       card.innerHTML =
         '<div class="z-face">'+faceHTML(yk)+'</div>'+
         '<div class="z-nm">'+yk.nm+'</div>'+
-        '<div class="z-meta">たおした '+rec.count+'かい<br>レベル '+rec.lastLevel+'<br>'+rec.lastDate+'</div>';
+        '<div class="z-meta">たおした '+rec.count+'かい<br>れべる '+rec.lastLevel+'<br>'+rec.lastDate+'</div>';
     } else {
       card.innerHTML =
         '<div class="z-face">❓</div>'+
@@ -362,7 +362,7 @@ function buildZukan(){
 function buildBook(){
   const g = $('bookGrid'); g.innerHTML = '';
   if(progress.stickers.length === 0){
-    g.innerHTML = '<div class="book-empty">まだ シールが ないよ。<br>バトルで あつめよう！</div>';
+    g.innerHTML = '<div class="book-empty">まだ しーるが ないよ。<br>ばとるで あつめよう！</div>';
     return;
   }
   progress.stickers.forEach(s => {
