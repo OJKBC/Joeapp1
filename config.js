@@ -55,10 +55,10 @@ const LEVELS = [
 
 /* ヒーロー（タイトル後の選択肢） */
 const HEROES = [
-  {face:'🦸', nm:'ヒーロー'},
-  {face:'🤖', nm:'ロボ'},
-  {face:'🐯', nm:'タイガー'},
-  {face:'🐲', nm:'ドラゴン'}
+  {face:'🔥', nm:'ファイア',     img:'images/fire_hero_512.webp'},
+  {face:'⚡', nm:'サンダー',     img:'images/lightning_hero_512.webp'},
+  {face:'❄️', nm:'アイス',       img:'images/water_ice_hero_512.webp'},
+  {face:'🥷', nm:'かぜニンジャ', img:'images/wind_ninja_hero_512.webp'}
 ];
 
 /* 妖怪（レベルごとに切り替わる。id は図鑑の保存キーに使う） */
