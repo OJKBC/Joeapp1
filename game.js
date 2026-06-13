@@ -12,6 +12,17 @@ const state = {
 
 const $ = id => document.getElementById(id);
 function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); $(id).classList.add('active'); }
+
+/* ---- 見た目（絵文字 or 画像） ----
+   config.js の各エントリに img:'images/xxx.png' があれば画像を、
+   なければ絵文字 face を表示する。1体ずつ差し替え可能。 */
+function faceHTML(e){
+  return e.img ? '<img class="face-img" src="'+e.img+'" alt="'+(e.nm||'')+'">' : e.face;
+}
+function setFace(el, e){
+  if(e.img){ el.innerHTML = '<img class="face-img" src="'+e.img+'" alt="'+(e.nm||'')+'">'; }
+  else { el.textContent = e.face; }
+}
 function shuffle(a){ return a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(p=>p[1]); }
 
 /* ---- セーブデータ（localStorage に保存） ---- */
@@ -62,7 +73,7 @@ function buildHeroGrid(){
   HEROES.forEach(h => {
     const c = document.createElement('div');
     c.className = 'hero-card';
-    c.innerHTML = '<span class="face">'+h.face+'</span><div class="nm">'+h.nm+'</div>';
+    c.innerHTML = '<span class="face">'+faceHTML(h)+'</span><div class="nm">'+h.nm+'</div>';
     c.onclick = () => {
       document.querySelectorAll('.hero-card').forEach(x=>x.classList.remove('sel'));
       c.classList.add('sel'); state.hero = h;
@@ -85,11 +96,11 @@ function spawnYokai(){
   state.yokaiHpMax = LEVELS[state.levelIdx].hp || CONFIG.yokaiHp;
   state.yokaiHp = state.yokaiHpMax;
   state.yokai = YOKAI[state.yokaiIdx % YOKAI.length];
-  $('yokai').textContent = state.yokai.face;
+  setFace($('yokai'), state.yokai);
   $('enemyName').textContent = state.yokai.nm;
   $('yokaiHp').style.width = '100%';
   // ヒーロー＆レベル表示
-  if(state.hero){ $('heroMon').textContent = state.hero.face; $('heroName').textContent = state.hero.nm; }
+  if(state.hero){ setFace($('heroMon'), state.hero); $('heroName').textContent = state.hero.nm; }
   $('heroLv').textContent = state.levelIdx + 1;
   $('enemyLv').textContent = state.levelIdx + 1;
 }
@@ -323,7 +334,7 @@ function buildZukan(){
     card.className = 'zukan-card' + (rec ? '' : ' locked');
     if(rec){
       card.innerHTML =
-        '<div class="z-face">'+yk.face+'</div>'+
+        '<div class="z-face">'+faceHTML(yk)+'</div>'+
         '<div class="z-nm">'+yk.nm+'</div>'+
         '<div class="z-meta">たおした '+rec.count+'かい<br>レベル '+rec.lastLevel+'<br>'+rec.lastDate+'</div>';
     } else {
