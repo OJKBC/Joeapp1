@@ -13,6 +13,34 @@ const $ = id => document.getElementById(id);
 function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); $(id).classList.add('active'); }
 function shuffle(a){ return a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(p=>p[1]); }
 
+/* ---- セーブデータ（localStorage に保存） ---- */
+const SAVE_KEY = 'hiraganaBattle.progress.v1';
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(raw){
+      const p = JSON.parse(raw);
+      return { collection: p.collection || {}, stickers: p.stickers || [] };
+    }
+  }catch(e){}
+  return { collection: {}, stickers: [] };  // collection: {yokaiId: {count, firstDate, lastDate, lastLevel}}
+}
+function saveProgress(){
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(progress)); }catch(e){}
+}
+const progress = loadProgress();
+
+/* 倒した妖怪を図鑑に登録 */
+function registerYokai(yk, levelIdx){
+  const today = new Date().toLocaleDateString('ja-JP');
+  const rec = progress.collection[yk.id] || { count: 0, firstDate: today };
+  rec.count++;
+  rec.lastDate = today;
+  rec.lastLevel = levelIdx + 1;
+  progress.collection[yk.id] = rec;
+  saveProgress();
+}
+
 /* ---- 読み上げ（TTS・マイク不要） ---- */
 if('speechSynthesis' in window){ speechSynthesis.onvoiceschanged = ()=>{}; }
 function speak(text){
@@ -54,7 +82,9 @@ function newQueue(){ state.queue = shuffle(LEVELS[state.levelIdx].items.slice())
 function spawnYokai(){
   state.yokaiHpMax = LEVELS[state.levelIdx].hp || CONFIG.yokaiHp;
   state.yokaiHp = state.yokaiHpMax;
-  $('yokai').textContent = YOKAI[state.yokaiIdx % YOKAI.length];
+  state.yokai = YOKAI[state.yokaiIdx % YOKAI.length];
+  $('yokai').textContent = state.yokai.face;
+  $('enemyName').textContent = state.yokai.nm;
   $('yokaiHp').style.width = '100%';
   // ヒーロー＆レベル表示
   if(state.hero){ $('heroMon').textContent = state.hero.face; $('heroName').textContent = state.hero.nm; }
@@ -109,14 +139,11 @@ function choose(btn, correct){
     fireProjectile($('heroMon'), $('yokai'), 'hero', () => { $('yokaiHp').style.width = pct; });
 
     if(state.yokaiHp <= 0){
-      if(state.levelIdx >= LEVELS.length - 1){
-        flashText('ぜんぶ クリア！','var(--gold)');
-        setTimeout(()=>endGame(true), 900);
-        return;
-      }
-      state.levelIdx++; state.yokaiIdx++; newQueue();
-      flashText('レベルアップ！','var(--gold)');
-      setTimeout(()=>{ spawnYokai(); renderTop(); nextQuestion(); }, 900);
+      registerYokai(state.yokai, state.levelIdx);          // 図鑑に登録
+      const wasLast = state.levelIdx >= LEVELS.length - 1;
+      flashText(wasLast ? 'ぜんぶ クリア！' : 'やっつけた！','var(--gold)');
+      setTimeout(()=> openStickerPick(wasLast), 900);      // シールを1枚えらぶ
+      return;
     } else {
       setTimeout(nextQuestion, 700);
     }
@@ -255,9 +282,78 @@ function flashText(txt, color){
   f.classList.remove('show'); void f.offsetWidth; f.classList.add('show');
 }
 
+/* ---- シール（レベルクリアのごほうび） ---- */
+function openStickerPick(wasLast){
+  state.pendingLast = wasLast;
+  const picks = shuffle(STICKERS.slice()).slice(0, 3);
+  const box = $('stickerChoices'); box.innerHTML = '';
+  picks.forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'sticker-choice';
+    b.textContent = s;
+    b.onclick = () => pickSticker(s);
+    box.appendChild(b);
+  });
+  show('stickerPick');
+}
+function pickSticker(s){
+  progress.stickers.push(s);
+  saveProgress();
+  flash(s, 'var(--gold)');
+  if(state.pendingLast){
+    setTimeout(()=> endGame(true), 500);
+  } else {
+    state.levelIdx++; state.yokaiIdx++; newQueue();
+    spawnYokai(); renderTop();
+    show('battle');
+    setTimeout(nextQuestion, 500);
+  }
+}
+
+/* ---- ようかいずかん ---- */
+function buildZukan(){
+  const g = $('zukanGrid'); g.innerHTML = '';
+  YOKAI.forEach(yk => {
+    const rec = progress.collection[yk.id];
+    const card = document.createElement('div');
+    card.className = 'zukan-card' + (rec ? '' : ' locked');
+    if(rec){
+      card.innerHTML =
+        '<div class="z-face">'+yk.face+'</div>'+
+        '<div class="z-nm">'+yk.nm+'</div>'+
+        '<div class="z-meta">たおした '+rec.count+'かい<br>レベル '+rec.lastLevel+'<br>'+rec.lastDate+'</div>';
+    } else {
+      card.innerHTML =
+        '<div class="z-face">❓</div>'+
+        '<div class="z-nm">？？？</div>'+
+        '<div class="z-meta">まだ あえてないよ</div>';
+    }
+    g.appendChild(card);
+  });
+}
+
+/* ---- シールちょう ---- */
+function buildBook(){
+  const g = $('bookGrid'); g.innerHTML = '';
+  if(progress.stickers.length === 0){
+    g.innerHTML = '<div class="book-empty">まだ シールが ないよ。<br>バトルで あつめよう！</div>';
+    return;
+  }
+  progress.stickers.forEach(s => {
+    const d = document.createElement('div');
+    d.className = 'book-sticker';
+    d.textContent = s;
+    g.appendChild(d);
+  });
+}
+
 /* ---- イベント ---- */
 $('startBtn').onclick = () => { buildHeroGrid(); show('select'); };
 $('goBattle').onclick = () => { if(state.hero) startGame(); };
 $('listenBtn').onclick = () => { if(state.current) speak(state.current.t); };
 $('retryBtn').onclick = startGame;
 $('againBtn').onclick = () => show('title');
+$('zukanBtn').onclick = () => { buildZukan(); show('zukan'); };
+$('bookBtn').onclick  = () => { buildBook(); show('stickerBook'); };
+$('zukanBack').onclick = () => show('title');
+$('bookBack').onclick  = () => show('title');
