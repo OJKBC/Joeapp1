@@ -68,9 +68,9 @@
   .btn:focus-visible { outline: 4px solid #fff; outline-offset: 3px; }
 
   /* title */
-  #title { justify-content: center; gap: 26px; }
+  #title { justify-content: center; gap: 16px; overflow-y: auto; }
   .game-logo {
-    font-size: clamp(40px, 13vw, 72px);
+    font-size: clamp(28px, 9vw, 48px);
     font-weight: 900;
     line-height: 1.05;
     text-shadow: 0 4px 0 var(--yokai-dark), 0 8px 18px rgba(0,0,0,.5);
@@ -290,7 +290,7 @@
     gap: 10px 16px; justify-items: center; align-items: center;
   }
   .title-heroes .th {
-    font-size: clamp(118px, 40vw, 180px); line-height: 1;
+    font-size: min(40vw, 20vh, 170px); line-height: 1;
     animation: bob 2.4s ease-in-out infinite;
   }
   .title-heroes .th:nth-child(2) { animation-delay: .3s; }
@@ -321,19 +321,20 @@
   }
   .btn-sub:active { box-shadow: 0 1px 0 var(--yokai-dark); }
 
-  /* item pick（レベルクリアで1こえらぶ） */
-  #itemPick { justify-content: center; gap: 22px; }
-  .item-row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+  /* item pick（レベルクリアで1こえらぶ。1行に1こ・大きめ） */
+  #itemPick { justify-content: center; gap: 16px; overflow-y: auto; }
+  .item-row { display: flex; flex-direction: column; gap: 14px; width: 100%; align-items: center; }
   .item-choice {
     font-family: inherit; border: none; cursor: pointer;
-    width: 116px; border-radius: 24px; padding: 12px 8px 10px; font-size: 76px;
+    width: 100%; max-width: 400px; border-radius: 28px; padding: 10px 20px;
+    font-size: min(26vw, 15vh, 116px);
     background: linear-gradient(180deg, #ffffff, #ece6ff); color: var(--ink);
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 16px;
     box-shadow: 0 6px 0 #b9add9, 0 8px 14px rgba(0,0,0,.3);
     transition: transform .08s ease;
   }
-  .item-choice .ic-nm { font-size: 15px; font-weight: 800; line-height: 1.2; }
-  .item-choice:active { transform: translateY(5px) scale(.97); box-shadow: 0 1px 0 #b9add9; }
+  .item-choice .ic-nm { font-size: clamp(20px, 5.5vw, 28px); font-weight: 800; line-height: 1.2; }
+  .item-choice:active { transform: translateY(5px) scale(.98); box-shadow: 0 1px 0 #b9add9; }
   .item-choice:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
 
   /* sub screens (zukan / どうぐ) */
@@ -375,7 +376,7 @@
     <button class="btn" id="startBtn">はじめる</button>
     <div class="title-menu">
       <button class="btn btn-sub" id="zukanBtn">📖 ようかいずかん</button>
-      <button class="btn btn-sub" id="itemsBtn">🎒 どうぐ</button>
+      <button class="btn btn-sub" id="itemsBtn">🎒 ばとるあいてむ</button>
     </div>
   </section>
 
@@ -436,7 +437,7 @@
   <!-- ITEM PICK（レベルクリアで1こえらぶ） -->
   <section id="itemPick" class="screen">
     <div class="big-emoji">🎁</div>
-    <div class="end-title">どうぐを 1こ えらんでね</div>
+    <div class="end-title">ばとるあいてむを 1こ えらんでね</div>
     <div class="item-row" id="itemChoices"></div>
   </section>
 
@@ -449,7 +450,7 @@
 
   <!-- どうぐ（ゲットしたアイテム） -->
   <section id="items" class="screen sub-screen">
-    <div class="sub-head">🎒 どうぐ</div>
+    <div class="sub-head">🎒 ばとるあいてむ</div>
     <div class="item-grid" id="itemGrid"></div>
     <button class="btn" id="itemsBack">もどる</button>
   </section>

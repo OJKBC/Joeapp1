@@ -156,7 +156,6 @@ function choose(btn, correct){
 
   if(correct){
     btn.classList.add('correct');
-    flash('⭕', 'var(--good)');
     state.score++; state.yokaiHp--;
     renderTop();
     $('heroMon').classList.add('attack'); setTimeout(()=>$('heroMon').classList.remove('attack'),360);
@@ -166,10 +165,11 @@ function choose(btn, correct){
     if(state.yokaiHp <= 0){
       registerYokai(state.yokai, state.levelIdx);          // 図鑑に登録
       const wasLast = state.levelIdx >= LEVELS.length - 1;
-      flashText(wasLast ? 'ぜんぶ くりあ！' : 'やっつけた！','var(--gold)');
-      setTimeout(()=>{ if(sid !== state.session) return; openItemPick(wasLast); }, 900);  // どうぐを1こえらぶ
+      flashText(wasLast ? 'ぜんぶ くりあ！' : 'やっつけた！','var(--gold)');  // トドメは文字だけ（⭕は出さない）
+      setTimeout(()=>{ if(sid !== state.session) return; openItemPick(wasLast); }, 900);  // ばとるあいてむを1こえらぶ
       return;
     } else {
+      flash('⭕', 'var(--good)');   // まだ続くときだけ ⭕ を出す
       setTimeout(()=>{ if(sid !== state.session) return; nextQuestion(); }, 700);
     }
   } else {
@@ -364,7 +364,7 @@ function buildZukan(){
 function buildItems(){
   const g = $('itemGrid'); g.innerHTML = '';
   if(progress.items.length === 0){
-    g.innerHTML = '<div class="book-empty">まだ どうぐが ないよ。<br>ばとるで あつめよう！</div>';
+    g.innerHTML = '<div class="book-empty">まだ ばとるあいてむが ないよ。<br>ばとるで あつめよう！</div>';
     return;
   }
   progress.items.forEach(id => {
