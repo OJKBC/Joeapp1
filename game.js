@@ -327,7 +327,6 @@ function openItemPick(wasLast){
 function pickItem(it){
   progress.items.push(it.id);
   saveProgress();
-  flash(it.face, 'var(--gold)');
   if(state.pendingLast){
     setTimeout(()=> endGame(true), 500);
   } else {
