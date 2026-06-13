@@ -286,9 +286,9 @@
   .face-img { height: 1em; width: auto; vertical-align: middle; object-fit: contain; }
 
   /* タイトルに並ぶヒーロー4体 */
-  .title-heroes { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .title-heroes { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
   .title-heroes .th {
-    font-size: clamp(54px, 18vw, 76px); line-height: 1;
+    font-size: clamp(78px, 26vw, 128px); line-height: 1;
     animation: bob 2.4s ease-in-out infinite;
   }
   .title-heroes .th:nth-child(2) { animation-delay: .3s; }
@@ -365,7 +365,6 @@
 
   <!-- TITLE -->
   <section id="title" class="screen active">
-    <div class="logo-mons">👹❓🦸</div>
     <div class="game-logo">ひらがな<br><span class="pop">バトル！</span></div>
     <div class="title-heroes" id="titleHeroes"></div>
     <button class="btn" id="startBtn">はじめる</button>
