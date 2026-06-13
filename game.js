@@ -32,10 +32,10 @@ function loadProgress(){
     const raw = localStorage.getItem(SAVE_KEY);
     if(raw){
       const p = JSON.parse(raw);
-      return { collection: p.collection || {}, stickers: p.stickers || [] };
+      return { collection: p.collection || {}, items: p.items || [] };
     }
   }catch(e){}
-  return { collection: {}, stickers: [] };  // collection: {yokaiId: {count, firstDate, lastDate, lastLevel}}
+  return { collection: {}, items: [] };  // collection: {yokaiId:{count,firstDate,lastDate,lastLevel}} / items: [itemId,...]
 }
 function saveProgress(){
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify(progress)); }catch(e){}
@@ -167,7 +167,7 @@ function choose(btn, correct){
       registerYokai(state.yokai, state.levelIdx);          // 図鑑に登録
       const wasLast = state.levelIdx >= LEVELS.length - 1;
       flashText(wasLast ? 'ぜんぶ くりあ！' : 'やっつけた！','var(--gold)');
-      setTimeout(()=>{ if(sid !== state.session) return; openStickerPick(wasLast); }, 900);  // シールを1枚えらぶ
+      setTimeout(()=>{ if(sid !== state.session) return; openItemPick(wasLast); }, 900);  // どうぐを1こえらぶ
       return;
     } else {
       setTimeout(()=>{ if(sid !== state.session) return; nextQuestion(); }, 700);
@@ -308,24 +308,26 @@ function flashText(txt, color){
   f.classList.remove('show'); void f.offsetWidth; f.classList.add('show');
 }
 
-/* ---- シール（レベルクリアのごほうび） ---- */
-function openStickerPick(wasLast){
+/* ---- どうぐ（レベルクリアのごほうび。Aまで＝あつめて表示するだけ） ---- */
+function itemById(id){ return ITEMS.find(x => x.id === id); }
+
+function openItemPick(wasLast){
   state.pendingLast = wasLast;
-  const picks = shuffle(STICKERS.slice()).slice(0, 3);
-  const box = $('stickerChoices'); box.innerHTML = '';
-  picks.forEach(s => {
+  const picks = shuffle(ITEMS.slice()).slice(0, 3);
+  const box = $('itemChoices'); box.innerHTML = '';
+  picks.forEach(it => {
     const b = document.createElement('button');
-    b.className = 'sticker-choice';
-    b.textContent = s;
-    b.onclick = () => pickSticker(s);
+    b.className = 'item-choice';
+    b.innerHTML = faceHTML(it) + '<span class="ic-nm">'+it.nm+'</span>';
+    b.onclick = () => pickItem(it);
     box.appendChild(b);
   });
-  show('stickerPick');
+  show('itemPick');
 }
-function pickSticker(s){
-  progress.stickers.push(s);
+function pickItem(it){
+  progress.items.push(it.id);
   saveProgress();
-  flash(s, 'var(--gold)');
+  flash(it.face, 'var(--gold)');
   if(state.pendingLast){
     setTimeout(()=> endGame(true), 500);
   } else {
@@ -358,17 +360,19 @@ function buildZukan(){
   });
 }
 
-/* ---- シールちょう ---- */
-function buildBook(){
-  const g = $('bookGrid'); g.innerHTML = '';
-  if(progress.stickers.length === 0){
-    g.innerHTML = '<div class="book-empty">まだ しーるが ないよ。<br>ばとるで あつめよう！</div>';
+/* ---- どうぐ一覧（ゲットしたアイテム） ---- */
+function buildItems(){
+  const g = $('itemGrid'); g.innerHTML = '';
+  if(progress.items.length === 0){
+    g.innerHTML = '<div class="book-empty">まだ どうぐが ないよ。<br>ばとるで あつめよう！</div>';
     return;
   }
-  progress.stickers.forEach(s => {
+  progress.items.forEach(id => {
+    const it = itemById(id);
+    if(!it) return;   // config から消えた古いIDは無視
     const d = document.createElement('div');
-    d.className = 'book-sticker';
-    d.textContent = s;
+    d.className = 'item-cell';
+    d.innerHTML = faceHTML(it) + '<span class="ic-nm">'+it.nm+'</span>';
     g.appendChild(d);
   });
 }
@@ -389,9 +393,9 @@ $('retryBtn').onclick = startGame;
 $('againBtn').onclick = () => show('title');
 $('homeBtn').onclick = goHome;
 $('zukanBtn').onclick = () => { buildZukan(); show('zukan'); };
-$('bookBtn').onclick  = () => { buildBook(); show('stickerBook'); };
+$('itemsBtn').onclick  = () => { buildItems(); show('items'); };
 $('zukanBack').onclick = () => show('title');
-$('bookBack').onclick  = () => show('title');
+$('itemsBack').onclick  = () => show('title');
 
 /* ---- 初期表示 ---- */
 buildTitleHeroes();

@@ -72,5 +72,14 @@ const YOKAI = [
   {id:'garan_oni',      face:'👹', nm:'がらんおに',     img:'images/garan_oni_512.png'}
 ];
 
-/* レベルクリアで1枚もらえるシール（自分で1枚えらぶ） */
-const STICKERS = ['⭐','🌈','🍓','🚀','👑','🦕','🌟','🍩','🐬','🦄','🎈','🍀'];
+/* レベルクリアで1こもらえる どうぐ（3こから1こえらぶ）。
+   ※いまは「あつめて ながめる」だけ。将来バトルで使えるようにする予定（effect は予約）。 */
+const ITEMS = [
+  {id:'fire_sword',    face:'⚔️', nm:'ほのおのけん',    img:'images/fire_sword_512.webp'},
+  {id:'light_blaster', face:'🔫', nm:'びーむがん',      img:'images/light_blaster_512.webp'},
+  {id:'guard_shield',  face:'🛡️', nm:'まもりのたて',    img:'images/guard_shield_512.webp'},
+  {id:'energy_drink',  face:'🥤', nm:'げんきどりんく',  img:'images/energy_drink_512.webp'},
+  {id:'lightning_bomb',face:'💣', nm:'かみなりばくだん',img:'images/lightning_bomb_512.webp'},
+  {id:'power_glove',   face:'🥊', nm:'ちからのてぶくろ',img:'images/power_glove_512.webp'},
+  {id:'speed_boots',   face:'👟', nm:'はやあしのくつ',  img:'images/speed_boots_512.webp'}
+];
