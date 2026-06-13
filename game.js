@@ -6,7 +6,8 @@
 const state = {
   hero: null, hearts: CONFIG.startHearts, score: 0,
   levelIdx: 0, queue: [], current: null,
-  yokaiIdx: 0, yokaiHp: CONFIG.yokaiHp, busy: false
+  yokaiIdx: 0, yokaiHp: CONFIG.yokaiHp, busy: false,
+  session: 0   // バトルを開始/中断するたびに +1。古いタイマーを無効化するために使う
 };
 
 const $ = id => document.getElementById(id);
@@ -73,6 +74,7 @@ function buildHeroGrid(){
 
 /* ---- ゲーム ---- */
 function startGame(){
+  state.session++;
   state.hearts = CONFIG.startHearts; state.score = 0;
   state.levelIdx = 0; state.yokaiIdx = 0;
   newQueue(); spawnYokai(); renderTop();
@@ -128,6 +130,7 @@ function buildChoices(item){
 function choose(btn, correct){
   if(state.busy) return;
   state.busy = true;
+  const sid = state.session;   // この回答が属するバトル。中断したら以降の処理は無効
 
   if(correct){
     btn.classList.add('correct');
@@ -142,10 +145,10 @@ function choose(btn, correct){
       registerYokai(state.yokai, state.levelIdx);          // 図鑑に登録
       const wasLast = state.levelIdx >= LEVELS.length - 1;
       flashText(wasLast ? 'ぜんぶ クリア！' : 'やっつけた！','var(--gold)');
-      setTimeout(()=> openStickerPick(wasLast), 900);      // シールを1枚えらぶ
+      setTimeout(()=>{ if(sid !== state.session) return; openStickerPick(wasLast); }, 900);  // シールを1枚えらぶ
       return;
     } else {
-      setTimeout(nextQuestion, 700);
+      setTimeout(()=>{ if(sid !== state.session) return; nextQuestion(); }, 700);
     }
   } else {
     btn.classList.add('wrong');
@@ -156,16 +159,17 @@ function choose(btn, correct){
     renderTop();
 
     if(state.hearts <= 0 && CONFIG.penaltyMode === 'heart'){
-      setTimeout(()=>endGame(false), 700);
+      setTimeout(()=>{ if(sid !== state.session) return; endGame(false); }, 700);
     } else {
       // 同じ問題のまま、もう一度えらべる（正解を光らせて教える）
       setTimeout(()=>{
+        if(sid !== state.session) return;
         document.querySelectorAll('.choice').forEach(c=>{
           if(c.textContent === state.current.t) c.classList.add('correct');
           else c.classList.add('dim');
         });
       }, 450);
-      setTimeout(()=>{ state.busy = false; nextQuestion(); }, 1500);
+      setTimeout(()=>{ if(sid !== state.session) return; state.busy = false; nextQuestion(); }, 1500);
     }
   }
 }
@@ -347,12 +351,21 @@ function buildBook(){
   });
 }
 
+/* ---- バトル中断 → ホームへ ---- */
+function goHome(){
+  state.session++;             // 走っているタイマーを無効化（タイトルを上書きさせない）
+  state.busy = true;
+  if('speechSynthesis' in window){ try{ speechSynthesis.cancel(); }catch(e){} }
+  show('title');
+}
+
 /* ---- イベント ---- */
 $('startBtn').onclick = () => { buildHeroGrid(); show('select'); };
 $('goBattle').onclick = () => { if(state.hero) startGame(); };
 $('listenBtn').onclick = () => { if(state.current) speak(state.current.t); };
 $('retryBtn').onclick = startGame;
 $('againBtn').onclick = () => show('title');
+$('homeBtn').onclick = goHome;
 $('zukanBtn').onclick = () => { buildZukan(); show('zukan'); };
 $('bookBtn').onclick  = () => { buildBook(); show('stickerBook'); };
 $('zukanBack').onclick = () => show('title');

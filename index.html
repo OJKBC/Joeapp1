@@ -282,6 +282,19 @@
     *, .flash.show, .yokai.hit, .choice.wrong { animation: none !important; transition: none !important; }
   }
 
+  /* battle: ホームにもどるボタン */
+  .battle-top { width: 100%; display: flex; justify-content: flex-start; }
+  .home-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    font-size: 20px; line-height: 1; cursor: pointer; color: #fff;
+    background: rgba(255,255,255,.14);
+    border: 2px solid rgba(255,255,255,.32);
+    box-shadow: 0 3px 0 rgba(0,0,0,.3);
+    transition: transform .08s ease, box-shadow .08s ease;
+  }
+  .home-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.3); }
+  .home-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
   /* title sub-menu */
   .title-menu { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; }
   .btn-sub {
@@ -355,6 +368,9 @@
 
   <!-- BATTLE -->
   <section id="battle" class="screen">
+    <div class="battle-top">
+      <button class="home-btn" id="homeBtn" aria-label="ホームにもどる">🏠</button>
+    </div>
     <div class="field">
       <div class="info enemy">
         <div class="row1"><span id="enemyName">ようかい</span><span class="lv">Lv <span id="enemyLv">1</span></span></div>
