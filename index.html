@@ -285,9 +285,12 @@
   .face-img { height: 1em; width: auto; vertical-align: middle; object-fit: contain; }
 
   /* タイトルに並ぶヒーロー4体 */
-  .title-heroes { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .title-heroes {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px 16px; justify-items: center; align-items: center;
+  }
   .title-heroes .th {
-    font-size: clamp(78px, 26vw, 128px); line-height: 1;
+    font-size: clamp(118px, 40vw, 180px); line-height: 1;
     animation: bob 2.4s ease-in-out infinite;
   }
   .title-heroes .th:nth-child(2) { animation-delay: .3s; }
