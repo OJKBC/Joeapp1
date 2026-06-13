@@ -339,10 +339,19 @@
   .item-choice:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
 
   /* sub screens (zukan / どうぐ) */
-  .sub-screen { justify-content: flex-start; gap: 16px; padding-top: 18px; }
-  .sub-head { font-size: 26px; font-weight: 900; }
-  /* 見出しと「もどる」は潰さない。スクロールはグリッドだけが担当 */
-  .sub-screen .sub-head, .sub-screen .btn { flex-shrink: 0; }
+  .sub-screen { justify-content: flex-start; gap: 14px; padding-top: 14px; }
+  .sub-head { font-size: 22px; font-weight: 900; }
+  /* 上部バー：もどるは常にここ（画面下端に置かず見切れを防ぐ）。スクロールはグリッドだけ */
+  .sub-bar { width: 100%; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .btn-back {
+    font-family: inherit; font-weight: 800; border: none; cursor: pointer;
+    background: rgba(255,255,255,.16); color: #fff;
+    border: 2px solid rgba(255,255,255,.32);
+    border-radius: 999px; padding: 8px 16px; font-size: 16px; flex-shrink: 0;
+    box-shadow: 0 3px 0 rgba(0,0,0,.3);
+  }
+  .btn-back:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.3); }
+  .btn-back:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   .zukan-grid, .item-grid {
     width: 100%; flex: 1; overflow-y: auto; min-height: 0;
     display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: start;
@@ -446,16 +455,20 @@
 
   <!-- ようかいずかん -->
   <section id="zukan" class="screen sub-screen">
-    <div class="sub-head">📖 ようかいずかん</div>
+    <div class="sub-bar">
+      <button class="btn-back" id="zukanBack">← もどる</button>
+      <div class="sub-head">📖 ようかいずかん</div>
+    </div>
     <div class="zukan-grid" id="zukanGrid"></div>
-    <button class="btn" id="zukanBack">もどる</button>
   </section>
 
   <!-- どうぐ（ゲットしたアイテム） -->
   <section id="items" class="screen sub-screen">
-    <div class="sub-head">🎒 ばとるあいてむ</div>
+    <div class="sub-bar">
+      <button class="btn-back" id="itemsBack">← もどる</button>
+      <div class="sub-head">🎒 ばとるあいてむ</div>
+    </div>
     <div class="item-grid" id="itemGrid"></div>
-    <button class="btn" id="itemsBack">もどる</button>
   </section>
 
   <div class="flash" id="flash"></div>
