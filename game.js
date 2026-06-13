@@ -67,6 +67,17 @@ function speak(text){
   }catch(e){}
 }
 
+/* ---- タイトルに並ぶヒーロー（飾り） ---- */
+function buildTitleHeroes(){
+  const g = $('titleHeroes'); g.innerHTML = '';
+  HEROES.forEach(h => {
+    const d = document.createElement('span');
+    d.className = 'th';
+    d.innerHTML = faceHTML(h);
+    g.appendChild(d);
+  });
+}
+
 /* ---- ヒーロー選択 ---- */
 function buildHeroGrid(){
   const g = $('heroGrid'); g.innerHTML = '';
@@ -381,3 +392,6 @@ $('zukanBtn').onclick = () => { buildZukan(); show('zukan'); };
 $('bookBtn').onclick  = () => { buildBook(); show('stickerBook'); };
 $('zukanBack').onclick = () => show('title');
 $('bookBack').onclick  = () => show('title');
+
+/* ---- 初期表示 ---- */
+buildTitleHeroes();
