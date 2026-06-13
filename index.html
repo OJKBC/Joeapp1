@@ -79,21 +79,21 @@
   .game-logo .pop { color: var(--gold); }
 
   /* hero select */
-  #select { justify-content: center; gap: 22px; }
+  #select { justify-content: center; gap: 14px; overflow-y: auto; }
   .heads { font-size: 26px; font-weight: 800; }
   .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; }
   .hero-card {
     background: rgba(255,255,255,.08);
     border: 3px solid rgba(255,255,255,.18);
     border-radius: 26px;
-    padding: 18px 8px 14px;
+    padding: 10px 6px 8px;
     cursor: pointer;
     transition: transform .1s ease, border-color .1s ease, background .1s ease;
   }
   .hero-card:active { transform: scale(.94); }
   .hero-card.sel { border-color: var(--gold); background: rgba(255,210,63,.18); }
-  .hero-card .face { font-size: clamp(118px, 40vw, 180px); display: block; }
-  .hero-card .nm { font-weight: 800; margin-top: 6px; font-size: 18px; }
+  .hero-card .face { font-size: min(40vw, 21vh, 180px); display: block; }
+  .hero-card .nm { font-weight: 800; margin-top: 2px; font-size: 17px; }
 
   /* battle */
   #battle { justify-content: flex-start; padding-top: 12px; gap: 10px; }
