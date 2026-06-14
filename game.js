@@ -226,6 +226,7 @@ function endGame(win){
     const defeats = Object.values(progress.collection).reduce((a, r) => a + (r.count || 0), 0);
     $('clearYokai').textContent = defeats;                  // たおした ようかいの かず
     show('cleared');
+    playFanfare();                                          // パンパカパーン！
   } else {
     $('overScore').textContent = state.score; show('over');
   }
@@ -309,6 +310,39 @@ function playImpact(){
   g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
   osc.connect(g).connect(ctx.destination);
   osc.start(t); osc.stop(t + 0.22);
+}
+/* クリアの「パンパカパーン」ファンファーレ */
+function playFanfare(){
+  const ctx = ensureAudio(); if(!ctx) return;
+  const t0 = ctx.currentTime;
+  function note(freq, start, dur, vol){
+    const t = t0 + start;
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3200;
+    o.type = 'sawtooth'; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(lp).connect(g).connect(ctx.destination);
+    o.start(t); o.stop(t + dur + 0.02);
+  }
+  const C = 523.25, E = 659.25, G = 783.99, C2 = 1046.5;
+  note(C, 0.00, 0.16, 0.16);     // パン
+  note(E, 0.16, 0.16, 0.16);     // パカ
+  note(G, 0.32, 0.18, 0.16);     // パー
+  [C2, G, E].forEach(f => note(f, 0.52, 0.75, 0.12));  // ジャーン（和音）
+  // キラッ（シンバル風ノイズ）
+  const t = t0 + 0.52, dur = 0.5;
+  const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for(let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+  const noise = ctx.createBufferSource(); noise.buffer = buf;
+  const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 4500;
+  const ng = ctx.createGain();
+  ng.gain.setValueAtTime(0.12, t);
+  ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.45);
+  noise.connect(hp).connect(ng).connect(ctx.destination);
+  noise.start(t); noise.stop(t + dur);
 }
 function screenShake(){
   const app = $('app');
