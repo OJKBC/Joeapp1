@@ -352,13 +352,20 @@ function fireProjectile(fromEl, toEl, kind, onImpact){
   const p = document.createElement('div');
   p.className = 'projectile ' + kind;
   p.style.left = s.x + 'px'; p.style.top = s.y + 'px';
+  // 攻撃者（ヒーロー/妖怪）の色にビームを合わせる
+  const col = kind === 'enemy' ? (state.yokai && state.yokai.col) : (state.hero && state.hero.col);
+  if(col){
+    p.style.background = `radial-gradient(ellipse at 72% 50%, #fff, ${col} 44%, ${col}00 78%)`;
+    p.style.boxShadow = `0 0 26px 10px ${col}c0`;
+  }
   field.appendChild(p);
   const dx = e.x - s.x, dy = e.y - s.y;
+  const ang = Math.atan2(dy, dx) * 180 / Math.PI;   // ビームを進行方向へ向ける
   const tx = `calc(-50% ${dx>=0?'+':'-'} ${Math.abs(dx)}px)`;
   const ty = `calc(-50% ${dy>=0?'+':'-'} ${Math.abs(dy)}px)`;
   const anim = p.animate(
-    [{ transform:'translate(-50%,-50%) scale(.5)', opacity:.6 },
-     { transform:`translate(${tx}, ${ty}) scale(1)`, opacity:1 }],
+    [{ transform:`translate(-50%,-50%) rotate(${ang}deg) scale(.5)`, opacity:.6 },
+     { transform:`translate(${tx}, ${ty}) rotate(${ang}deg) scale(1)`, opacity:1 }],
     { duration: 420, easing: 'cubic-bezier(.45,0,.75,1)' }
   );
   anim.onfinish = () => { p.remove(); done(); };

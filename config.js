@@ -60,42 +60,42 @@ const LEVELS = [
 
 /* ヒーロー（タイトル後の選択肢） */
 const HEROES = [
-  {face:'🔥', nm:'ふぁいあ',     img:'images/fire_hero_512.webp'},
-  {face:'⚡', nm:'さんだー',     img:'images/lightning_hero_512.webp'},
-  {face:'❄️', nm:'あいす',       img:'images/water_ice_hero_512.webp'},
-  {face:'🥷', nm:'かぜにんじゃ', img:'images/wind_ninja_hero_512.webp'},
-  {face:'✨', nm:'ぱらでぃん',   img:'images/hero_holy_paladin_512.webp'},
-  {face:'🔮', nm:'まほうつかい', img:'images/hero_dark_mage_512.webp'},
-  {face:'🥋', nm:'かくとうか',   img:'images/hero_earth_martial_artist_512.webp'},
-  {face:'🐲', nm:'りゅうきし',   img:'images/hero_black_dragoon_512.webp'}
+  {face:'🔥', nm:'ふぁいあ',     col:'#ff5a2b', img:'images/fire_hero_512.webp'},
+  {face:'⚡', nm:'さんだー',     col:'#ffd23f', img:'images/lightning_hero_512.webp'},
+  {face:'❄️', nm:'あいす',       col:'#34c2e3', img:'images/water_ice_hero_512.webp'},
+  {face:'🥷', nm:'かぜにんじゃ', col:'#46e07a', img:'images/wind_ninja_hero_512.webp'},
+  {face:'✨', nm:'ぱらでぃん',   col:'#ffe27a', img:'images/hero_holy_paladin_512.webp'},
+  {face:'🔮', nm:'まほうつかい', col:'#b14aed', img:'images/hero_dark_mage_512.webp'},
+  {face:'🥋', nm:'かくとうか',   col:'#d59433', img:'images/hero_earth_martial_artist_512.webp'},
+  {face:'🐲', nm:'りゅうきし',   col:'#8a7bff', img:'images/hero_black_dragoon_512.webp'}
 ];
 
 /* 妖怪マスター（図鑑はこの全部を表示）。id は図鑑の保存キー。 */
 const YOKAI = [
   // もとからの7体
-  {id:'kodamaru',       face:'🌳', nm:'こだまる',       img:'images/kodamaru_512.png'},
-  {id:'patamon',        face:'🐦', nm:'ぱたもん',       img:'images/patamon_512.png'},
-  {id:'moyakage',       face:'🌫️', nm:'もやかげ',       img:'images/moyakage_512.png'},
-  {id:'shuppou',        face:'🚂', nm:'しゅっぽう',     img:'images/shuppou_512.png'},
-  {id:'noroizao',       face:'🪄', nm:'のろいざお',     img:'images/noroizao_512.png'},
-  {id:'kyouran_gitsune',face:'🦊', nm:'きょうらんぎつね',img:'images/kyouran_gitsune_512.png'},
-  {id:'garan_oni',      face:'👹', nm:'がらんおに',     img:'images/garan_oni_512.png'},
+  {id:'kodamaru',       face:'🌳', nm:'こだまる',       col:'#46e07a', img:'images/kodamaru_512.png'},
+  {id:'patamon',        face:'🐦', nm:'ぱたもん',       col:'#6ec6ff', img:'images/patamon_512.png'},
+  {id:'moyakage',       face:'🌫️', nm:'もやかげ',       col:'#9aa0c0', img:'images/moyakage_512.png'},
+  {id:'shuppou',        face:'🚂', nm:'しゅっぽう',     col:'#b0b6c0', img:'images/shuppou_512.png'},
+  {id:'noroizao',       face:'🪄', nm:'のろいざお',     col:'#b14aed', img:'images/noroizao_512.png'},
+  {id:'kyouran_gitsune',face:'🦊', nm:'きょうらんぎつね',col:'#ff8a3d', img:'images/kyouran_gitsune_512.png'},
+  {id:'garan_oni',      face:'👹', nm:'がらんおに',     col:'#ff3b3b', img:'images/garan_oni_512.png'},
   // 追加（よわい系）
-  {id:'wood_sprite',    face:'🌱', nm:'もりのせい',     img:'images/enemy_wood_sprite_512.webp'},
-  {id:'small_skeleton', face:'💀', nm:'ちびがいこつ',   img:'images/enemy_small_skeleton_512.webp'},
-  {id:'lantern_yokai',  face:'🏮', nm:'ちょうちんおばけ',img:'images/enemy_lantern_yokai_512.webp'},
-  {id:'mud_golem',      face:'🟤', nm:'どろごーれむ',   img:'images/enemy_mud_golem_512.webp'},
+  {id:'wood_sprite',    face:'🌱', nm:'もりのせい',     col:'#7bd66a', img:'images/enemy_wood_sprite_512.webp'},
+  {id:'small_skeleton', face:'💀', nm:'ちびがいこつ',   col:'#e8e3d0', img:'images/enemy_small_skeleton_512.webp'},
+  {id:'lantern_yokai',  face:'🏮', nm:'ちょうちんおばけ',col:'#ff8a2b', img:'images/enemy_lantern_yokai_512.webp'},
+  {id:'mud_golem',      face:'🟤', nm:'どろごーれむ',   col:'#9b7a4a', img:'images/enemy_mud_golem_512.webp'},
   // 追加（つよい系）
-  {id:'rock_monster',   face:'🪨', nm:'いわおとこ',     img:'images/yokai_rock_monster_512.webp'},
-  {id:'gorilla',        face:'🦍', nm:'ごりら',         img:'images/yokai_gorilla_512.webp'},
-  {id:'robot_red',      face:'🔴', nm:'あかろぼ',       img:'images/yokai_robot_red_512.webp'},
-  {id:'robot_ninja',    face:'🤖', nm:'にんじゃろぼ',   img:'images/yokai_robot_ninja_512.webp'},
-  {id:'skeleton_knight',face:'⚔️', nm:'がいこつきし',   img:'images/yokai_skeleton_knight_512.webp'},
-  {id:'weapon_octopus', face:'🐙', nm:'ぶきだこ',       img:'images/yokai_weapon_octopus_512.webp'},
-  {id:'multiarm_giant', face:'🦾', nm:'うでだらけきょじん',img:'images/yokai_multiarm_giant_512.webp'},
-  {id:'robot_castle',   face:'🏰', nm:'おしろろぼ',     img:'images/yokai_robot_castle_512.webp'},
-  {id:'thunder_dragon', face:'⚡', nm:'かみなりどらごん',img:'images/yokai_thunder_dragon_512.webp'},
-  {id:'humanoid_dragon',face:'🐉', nm:'りゅうじん',     img:'images/yokai_humanoid_dragon_512.webp'}
+  {id:'rock_monster',   face:'🪨', nm:'いわおとこ',     col:'#b0a08c', img:'images/yokai_rock_monster_512.webp'},
+  {id:'gorilla',        face:'🦍', nm:'ごりら',         col:'#8a6b4a', img:'images/yokai_gorilla_512.webp'},
+  {id:'robot_red',      face:'🔴', nm:'あかろぼ',       col:'#ff4a4a', img:'images/yokai_robot_red_512.webp'},
+  {id:'robot_ninja',    face:'🤖', nm:'にんじゃろぼ',   col:'#5a6cff', img:'images/yokai_robot_ninja_512.webp'},
+  {id:'skeleton_knight',face:'⚔️', nm:'がいこつきし',   col:'#cfd6e0', img:'images/yokai_skeleton_knight_512.webp'},
+  {id:'weapon_octopus', face:'🐙', nm:'ぶきだこ',       col:'#ff5aa0', img:'images/yokai_weapon_octopus_512.webp'},
+  {id:'multiarm_giant', face:'🦾', nm:'うでだらけきょじん',col:'#c06ad6', img:'images/yokai_multiarm_giant_512.webp'},
+  {id:'robot_castle',   face:'🏰', nm:'おしろろぼ',     col:'#c9a24a', img:'images/yokai_robot_castle_512.webp'},
+  {id:'thunder_dragon', face:'⚡', nm:'かみなりどらごん',col:'#ffd23f', img:'images/yokai_thunder_dragon_512.webp'},
+  {id:'humanoid_dragon',face:'🐉', nm:'りゅうじん',     col:'#46c2e3', img:'images/yokai_humanoid_dragon_512.webp'}
 ];
 
 /* レベルごとに登場する妖怪（id）。バトルのたびに この中から ランダムで1体でる。
