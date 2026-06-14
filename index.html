@@ -106,16 +106,16 @@
 
   /* yokai select（たたかう相手をえらぶ） */
   #yokaiSelect { justify-content: flex-start; gap: 18px; overflow-y: auto; }
-  .yokai-row { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; width: 100%; }
+  .yokai-row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; align-items: stretch; width: 100%; }
   .yokai-choice {
     font-family: inherit; border: none; cursor: pointer; color: var(--paper);
-    width: 150px; border-radius: 22px; padding: 12px 8px;
-    font-size: clamp(86px, 26vw, 120px);
+    width: min(44vw, 240px); border-radius: 26px; padding: 14px 10px;
+    font-size: min(42vw, 30vh, 210px);
     background: rgba(255,255,255,.08); border: 3px solid rgba(255,255,255,.18);
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
     transition: transform .1s ease, border-color .1s ease, background .1s ease;
   }
-  .yokai-choice .yc-nm { font-size: 16px; font-weight: 800; }
+  .yokai-choice .yc-nm { font-size: clamp(18px, 5vw, 24px); font-weight: 800; }
   .yokai-choice:active { transform: scale(.94); border-color: var(--gold); background: rgba(255,210,63,.18); }
   .yokai-choice:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
 
