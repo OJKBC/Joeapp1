@@ -58,7 +58,11 @@ const HEROES = [
   {face:'🔥', nm:'ふぁいあ',     img:'images/fire_hero_512.webp'},
   {face:'⚡', nm:'さんだー',     img:'images/lightning_hero_512.webp'},
   {face:'❄️', nm:'あいす',       img:'images/water_ice_hero_512.webp'},
-  {face:'🥷', nm:'かぜにんじゃ', img:'images/wind_ninja_hero_512.webp'}
+  {face:'🥷', nm:'かぜにんじゃ', img:'images/wind_ninja_hero_512.webp'},
+  {face:'✨', nm:'ぱらでぃん',   img:'images/hero_holy_paladin_512.webp'},
+  {face:'🔮', nm:'まほうつかい', img:'images/hero_dark_mage_512.webp'},
+  {face:'🥋', nm:'かくとうか',   img:'images/hero_earth_martial_artist_512.webp'},
+  {face:'🐲', nm:'りゅうきし',   img:'images/hero_black_dragoon_512.webp'}
 ];
 
 /* 妖怪（レベルごとに切り替わる。id は図鑑の保存キーに使う） */
