@@ -348,10 +348,14 @@
   .item-choice:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
 
   /* sub screens (zukan / どうぐ) */
-  .sub-screen { justify-content: flex-start; gap: 14px; padding-top: 14px; }
+  .sub-screen { justify-content: flex-start; gap: 14px; padding-top: 0; overflow-y: auto; }
   .sub-head { font-size: 22px; font-weight: 900; }
-  /* 上部バー：もどるは常にここ（画面下端に置かず見切れを防ぐ）。スクロールはグリッドだけ */
-  .sub-bar { width: 100%; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  /* 上部バー：画面全体がスクロールしても「もどる」は上に貼り付く（sticky） */
+  .sub-bar {
+    position: sticky; top: 0; z-index: 3;
+    width: 100%; display: flex; align-items: center; gap: 10px;
+    padding: 14px 0 10px; background: var(--night-1);
+  }
   .btn-back {
     font-family: inherit; font-weight: 800; border: none; cursor: pointer;
     background: rgba(255,255,255,.16); color: #fff;
@@ -362,7 +366,7 @@
   .btn-back:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.3); }
   .btn-back:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   .zukan-grid, .item-grid {
-    width: 100%; flex: 1; overflow-y: auto; min-height: 0;
+    width: 100%;
     display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: start;
     padding: 4px;
   }
@@ -379,11 +383,18 @@
   .zukan-card .z-meta { font-size: 12px; opacity: .85; line-height: 1.4; }
 
   .item-cell {
+    position: relative;
     border-radius: 18px; padding: 12px 6px;
     background: rgba(255,255,255,.1); border: 2px solid rgba(255,255,255,.25);
     display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 60px;
   }
   .item-cell .ic-nm { font-size: 14px; font-weight: 800; line-height: 1.2; }
+  .item-cell .ic-count {
+    position: absolute; top: 6px; right: 8px;
+    background: var(--gold); color: var(--ink);
+    font-size: 16px; font-weight: 900; line-height: 1;
+    padding: 3px 8px; border-radius: 999px; box-shadow: 0 2px 0 #c79b14;
+  }
   .book-empty { grid-column: 1 / -1; padding: 30px 10px; font-weight: 800; line-height: 1.6; opacity: .9; }
 </style>
 </head>

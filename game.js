@@ -393,12 +393,17 @@ function buildItems(){
     g.innerHTML = '<div class="book-empty">まだ ばとるあいてむが ないよ。<br>ばとるで あつめよう！</div>';
     return;
   }
-  progress.items.forEach(id => {
-    const it = itemById(id);
-    if(!it) return;   // config から消えた古いIDは無視
+  // 同じアイテムは1つにまとめて個数を数える
+  const counts = {};
+  progress.items.forEach(id => { counts[id] = (counts[id] || 0) + 1; });
+  // ITEMS の並び順で表示（持っているものだけ）
+  ITEMS.forEach(it => {
+    const n = counts[it.id];
+    if(!n) return;
     const d = document.createElement('div');
     d.className = 'item-cell';
-    d.innerHTML = faceHTML(it) + '<span class="ic-nm">'+it.nm+'</span>';
+    const badge = n > 1 ? '<span class="ic-count">×'+n+'</span>' : '';
+    d.innerHTML = badge + faceHTML(it) + '<span class="ic-nm">'+it.nm+'</span>';
     g.appendChild(d);
   });
 }
