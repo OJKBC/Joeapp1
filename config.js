@@ -21,13 +21,18 @@ const CONFIG = {
    ・items: {t:'よみ', p:'絵文字'} の配列
    ========================================================= */
 const LEVELS = [
-  { name: '2もじ（あ〜ん）', hp: 12, items: [
-    {t:'あし',p:'🦶'},{t:'うみ',p:'🌊'},{t:'ふえ',p:'🎵'},{t:'そら',p:'☁️'},{t:'てら',p:'⛩️'},{t:'にわ',p:'🪴'},
+  { name: '2もじ ①', hp: 6, items: [
+    {t:'あし',p:'🦶'},{t:'うみ',p:'🌊'},{t:'ふえ',p:'🎵'},{t:'そら',p:'☁️'},{t:'てら',p:'⛩️'},{t:'にわ',p:'🪴'}
+  ]},
+  { name: '2もじ ②', hp: 6, items: [
     {t:'はれ',p:'☀️'},{t:'ゆめ',p:'💭'},{t:'つき',p:'🌙'},{t:'ねこ',p:'🐱'},{t:'へや',p:'🚪'},{t:'ふろ',p:'🛁'}
   ]},
-  { name: '3もじ（あ〜ん）', hp: 13, items: [
+  { name: '3もじ ①', hp: 7, items: [
     {t:'きりん',p:'🦒'},{t:'すいか',p:'🍉'},{t:'くるま',p:'🚗'},{t:'ことり',p:'🐦'},{t:'たぬき',p:'🦝'},
-    {t:'せかい',p:'🌍'},{t:'ほたる',p:'🪲'},{t:'けむり',p:'💨'},{t:'ひよこ',p:'🐤'},{t:'おもち',p:'🍡'},
+    {t:'せかい',p:'🌍'},{t:'ほたる',p:'🪲'}
+  ]},
+  { name: '3もじ ②', hp: 6, items: [
+    {t:'けむり',p:'💨'},{t:'ひよこ',p:'🐤'},{t:'おもち',p:'🍡'},
     {t:'きのこ',p:'🍄'},{t:'やさい',p:'🥬'},{t:'みなと',p:'⚓'}
   ]},
   { name: 'てんてん（濁点）', items: [
@@ -96,13 +101,15 @@ const YOKAI = [
 /* レベルごとに登場する妖怪（id）。バトルのたびに この中から ランダムで1体でる。
    ※やさしい見た目を前半、つよそうを後半に。並べ替え/入れ替え自由。 */
 const YOKAI_BY_LEVEL = [
-  ['kodamaru','wood_sprite','small_skeleton'],        // Lv1
-  ['patamon','lantern_yokai','mud_golem'],            // Lv2
-  ['moyakage','rock_monster','gorilla'],              // Lv3
-  ['shuppou','robot_red','robot_ninja'],              // Lv4
-  ['noroizao','skeleton_knight','weapon_octopus'],    // Lv5
-  ['kyouran_gitsune','multiarm_giant','robot_castle'],// Lv6
-  ['garan_oni','thunder_dragon','humanoid_dragon']    // Lv7（ボス）
+  ['kodamaru','wood_sprite'],                         // Lv1 2もじ①
+  ['patamon','small_skeleton'],                       // Lv2 2もじ②
+  ['moyakage','lantern_yokai'],                       // Lv3 3もじ①
+  ['shuppou','mud_golem'],                            // Lv4 3もじ②
+  ['noroizao','rock_monster','gorilla'],              // Lv5 てんてん
+  ['kyouran_gitsune','robot_red','robot_ninja'],      // Lv6 まる
+  ['skeleton_knight','weapon_octopus'],               // Lv7 っ
+  ['multiarm_giant','robot_castle'],                  // Lv8 ー
+  ['garan_oni','thunder_dragon','humanoid_dragon']    // Lv9 拗音（ボス）
 ];
 
 /* レベルクリアで1こもらえる どうぐ（3こから1こえらぶ）。
