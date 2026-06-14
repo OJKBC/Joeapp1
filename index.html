@@ -346,6 +346,14 @@
     box-shadow: 0 4px 0 #c79b14;
   }
 
+  /* テスト用バー（#dev のときだけ表示） */
+  #devbar { position: fixed; top: 6px; right: 6px; z-index: 200; display: flex; gap: 6px; }
+  #devbar button {
+    font-family: inherit; font-size: 12px; font-weight: 800; color: #fff;
+    padding: 6px 10px; border-radius: 8px; border: none; cursor: pointer;
+    background: rgba(220,40,40,.82); box-shadow: 0 2px 6px rgba(0,0,0,.4);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, .flash.show, .yokai.hit, .choice.wrong { animation: none !important; transition: none !important; }
   }
@@ -570,6 +578,12 @@
 
   <div class="flash" id="flash"></div>
   <div class="popup" id="popup"><img id="popupImg" alt="" /></div>
+
+  <!-- テスト用（URLに #dev のときだけ表示） -->
+  <div id="devbar" style="display:none">
+    <button id="devLast">さいごへ</button>
+    <button id="devWin">かち</button>
+  </div>
 </div>
 
 <!-- 設定・もんだいデータ（編集はこちら）-->

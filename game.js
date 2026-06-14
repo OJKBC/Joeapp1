@@ -183,10 +183,7 @@ function choose(btn, correct){
     fireProjectile($('heroMon'), $('yokai'), 'hero', () => { $('yokaiHp').style.width = pct; });
 
     if(state.yokaiHp <= 0){
-      registerYokai(state.yokai, state.levelIdx);          // 図鑑に登録
-      const wasLast = state.levelIdx >= LEVELS.length - 1;
-      flashImage('images/defeat_popup.png');   // 毎回「やっつけた」演出カード（1.6秒）
-      setTimeout(()=>{ if(sid !== state.session) return; openItemPick(wasLast ? 'final' : 'level'); }, 1600);
+      defeatYokai(sid);
       return;
     } else {
       flash('⭕', 'var(--good)');   // まだ続くときだけ ⭕ を出す
@@ -350,6 +347,13 @@ function flashImage(src){
 /* ---- どうぐ（レベルクリアのごほうび。Aまで＝あつめて表示するだけ） ---- */
 function itemById(id){ return ITEMS.find(x => x.id === id); }
 
+/* 妖怪をたおした時の共通処理（通常の正解 と テスト勝利の両方から呼ぶ） */
+function defeatYokai(sid){
+  registerYokai(state.yokai, state.levelIdx);              // 図鑑に登録
+  const wasLast = state.levelIdx >= LEVELS.length - 1;
+  flashImage('images/defeat_popup.png');                   // 「やっつけた」演出カード（1.6秒）
+  setTimeout(()=>{ if(sid !== state.session) return; openItemPick(wasLast ? 'final' : 'level'); }, 1600);
+}
 function openItemPick(mode){
   const isFinal = (mode === 'final');   // 最後だけ全25種から「選び放題」、通常は3こからランダム
   state.finalPick = isFinal;
@@ -441,3 +445,27 @@ $('zukanBtn').onclick = () => { buildZukan(); show('zukan'); };
 $('itemsBtn').onclick  = () => { buildItems(); show('items'); };
 $('zukanBack').onclick = () => show('title');
 $('itemsBack').onclick  = () => show('title');
+
+/* ---- テスト用ショートカット（URLに #dev を付けた時だけ有効） ---- */
+function devLast(){            // いきなり最終レベルのバトルへ
+  state.hero = state.hero || HEROES[0];
+  state.session++;
+  state.hearts = CONFIG.startHearts; state.score = 0;
+  state.levelIdx = LEVELS.length - 1; state.yokaiIdx = 0;
+  renderTop();
+  startLevel();
+}
+function devWin(){             // 今のバトルを即勝利
+  if(!$('battle').classList.contains('active')) return;
+  state.yokaiHp = 0; $('yokaiHp').style.width = '0%'; state.busy = true;
+  defeatYokai(state.session);
+}
+if(location.hash.indexOf('dev') >= 0){
+  const bar = $('devbar'); if(bar) bar.style.display = 'flex';
+  $('devLast').onclick = devLast;
+  $('devWin').onclick = devWin;
+  window.addEventListener('keydown', e => {
+    if(e.key === 'l') devLast();
+    if(e.key === 'k') devWin();
+  });
+}
