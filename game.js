@@ -125,6 +125,12 @@ function chooseYokai(yk){
 /* えらばれた妖怪をバトルにセット */
 function spawnYokai(yk){
   state.yokai = yk;
+  // バトル背景をランダムに（緑のフィールドのかわり）
+  if(typeof BATTLE_BGS !== 'undefined' && BATTLE_BGS.length){
+    const bg = BATTLE_BGS[Math.floor(Math.random() * BATTLE_BGS.length)];
+    const field = document.querySelector('.field');
+    if(field) field.style.backgroundImage = "url('" + bg + "')";
+  }
   state.yokaiHpMax = LEVELS[state.levelIdx].hp || CONFIG.yokaiHp;
   state.yokaiHp = state.yokaiHpMax;
   setFace($('yokai'), state.yokai);

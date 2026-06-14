@@ -112,6 +112,12 @@ const YOKAI_BY_LEVEL = [
   ['garan_oni','thunder_dragon','humanoid_dragon']    // Lv9 拗音（ボス）
 ];
 
+/* バトルの背景（緑のフィールドのかわり）。バトルごとに この中から ランダムで1枚。
+   ※増やすときは images/ に入れて、ここにファイル名を足すだけ。 */
+const BATTLE_BGS = [
+  'images/battle_bg_01.png'
+];
+
 /* レベルクリアで1こもらえる どうぐ（3こから1こえらぶ）。
    ※いまは「あつめて ながめる」だけ。将来バトルで使えるようにする予定（effect は予約）。 */
 const ITEMS = [
