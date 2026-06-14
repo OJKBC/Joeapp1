@@ -185,10 +185,13 @@ function choose(btn, correct){
     if(state.yokaiHp <= 0){
       registerYokai(state.yokai, state.levelIdx);          // 図鑑に登録
       const wasLast = state.levelIdx >= LEVELS.length - 1;
-      let popMs = 900;
-      if(wasLast){ flashText('ぜんぶ くりあ！','var(--gold)'); }
-      else { flashImage('images/defeat_popup.png'); popMs = 1600; }   // 演出カードを長めに見せる
-      setTimeout(()=>{ if(sid !== state.session) return; openItemPick(wasLast); }, popMs);  // ばとるあいてむを1こえらぶ
+      flashImage('images/defeat_popup.png');   // 毎回「やっつけた」演出カード
+      if(wasLast){
+        // 最後の妖怪：アイテムを挟まず そのまま おめでとう画面へ
+        setTimeout(()=>{ if(sid !== state.session) return; endGame(true); }, 1600);
+      } else {
+        setTimeout(()=>{ if(sid !== state.session) return; openItemPick(false); }, 1600);  // ばとるあいてむを1こえらぶ
+      }
       return;
     } else {
       flash('⭕', 'var(--good)');   // まだ続くときだけ ⭕ を出す
