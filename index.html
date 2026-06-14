@@ -331,7 +331,13 @@
   }
 
   /* end screens */
-  #over, #cleared { justify-content: center; gap: 22px; }
+  #over { justify-content: center; gap: 22px; }
+  #cleared {
+    justify-content: flex-end; gap: 14px; padding-bottom: 28px;
+    background:
+      linear-gradient(to top, rgba(13,8,30,.65) 2%, rgba(13,8,30,0) 24%),
+      url('images/final_clear.png') center / cover no-repeat, var(--night-1);
+  }
   .big-emoji { font-size: 96px; }
   .end-title { font-size: 36px; font-weight: 900; }
   .score-pill {
@@ -510,8 +516,6 @@
 
   <!-- CLEARED -->
   <section id="cleared" class="screen">
-    <div class="big-emoji">🏆</div>
-    <div class="end-title">ぜんぶ くりあ！</div>
     <div class="score-pill">⭐ <span id="clearScore">0</span> てん</div>
     <button class="btn" id="againBtn">もういちど あそぶ</button>
   </section>
