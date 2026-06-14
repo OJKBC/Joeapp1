@@ -247,17 +247,43 @@ function ensureAudio(){
 function playBeam(kind){
   const ctx = ensureAudio(); if(!ctx) return;
   const t = ctx.currentTime;
+  const heavy = kind !== 'enemy';
+  const f0 = heavy ? 200 : 150, f1 = heavy ? 46 : 64;   // 低音の下降（ドゥン）
+  // 1) 低音の本体（sine）
   const osc = ctx.createOscillator(), g = ctx.createGain();
-  osc.type = 'sawtooth';
-  const f0 = kind === 'enemy' ? 520 : 940;
-  const f1 = kind === 'enemy' ? 120 : 280;
+  osc.type = 'sine';
   osc.frequency.setValueAtTime(f0, t);
-  osc.frequency.exponentialRampToValueAtTime(f1, t + 0.18);
+  osc.frequency.exponentialRampToValueAtTime(f1, t + 0.26);
   g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(0.2, t + 0.02);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+  g.gain.exponentialRampToValueAtTime(0.42, t + 0.03);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.34);
   osc.connect(g).connect(ctx.destination);
-  osc.start(t); osc.stop(t + 0.22);
+  osc.start(t); osc.stop(t + 0.36);
+  // 2) 重み用の倍音（triangle）
+  const osc2 = ctx.createOscillator(), g2 = ctx.createGain();
+  osc2.type = 'triangle';
+  osc2.frequency.setValueAtTime(f0 * 1.5, t);
+  osc2.frequency.exponentialRampToValueAtTime(f1 * 1.5, t + 0.2);
+  g2.gain.setValueAtTime(0.0001, t);
+  g2.gain.exponentialRampToValueAtTime(0.13, t + 0.02);
+  g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.24);
+  osc2.connect(g2).connect(ctx.destination);
+  osc2.start(t); osc2.stop(t + 0.26);
+  // 3) 空気のウーッシュ（ノイズ＋lowpassを動かす）
+  const dur = 0.3;
+  const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for(let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  const noise = ctx.createBufferSource(); noise.buffer = buf;
+  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass';
+  lp.frequency.setValueAtTime(heavy ? 900 : 1100, t);
+  lp.frequency.exponentialRampToValueAtTime(180, t + 0.28);
+  const ng = ctx.createGain();
+  ng.gain.setValueAtTime(0.0001, t);
+  ng.gain.exponentialRampToValueAtTime(0.2, t + 0.04);
+  ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+  noise.connect(lp).connect(ng).connect(ctx.destination);
+  noise.start(t); noise.stop(t + dur);
 }
 function playImpact(){
   const ctx = ensureAudio(); if(!ctx) return;
