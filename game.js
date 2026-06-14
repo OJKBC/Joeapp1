@@ -16,7 +16,7 @@ function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.r
 /* ---- 見た目（絵文字 or 画像） ----
    config.js の各エントリに img:'images/xxx.png' があれば画像を、
    なければ絵文字 face を表示する。1体ずつ差し替え可能。 */
-const IMGV = '4';   // 画像を更新したら ここを上げると 古いキャッシュを無視して読み直す
+const IMGV = '5';   // 画像を更新したら ここを上げると 古いキャッシュを無視して読み直す
 function imgSrc(e){ return e.img + (e.img.indexOf('?')<0 ? '?v='+IMGV : ''); }
 function faceHTML(e){
   return e.img ? '<img class="face-img" src="'+imgSrc(e)+'" alt="'+(e.nm||'')+'">' : e.face;
