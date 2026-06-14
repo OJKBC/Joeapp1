@@ -185,13 +185,8 @@ function choose(btn, correct){
     if(state.yokaiHp <= 0){
       registerYokai(state.yokai, state.levelIdx);          // 図鑑に登録
       const wasLast = state.levelIdx >= LEVELS.length - 1;
-      flashImage('images/defeat_popup.png');   // 毎回「やっつけた」演出カード
-      if(wasLast){
-        // 最後の妖怪：アイテムを挟まず そのまま おめでとう画面へ
-        setTimeout(()=>{ if(sid !== state.session) return; endGame(true); }, 1600);
-      } else {
-        setTimeout(()=>{ if(sid !== state.session) return; openItemPick(false); }, 1600);  // ばとるあいてむを1こえらぶ
-      }
+      flashImage('images/defeat_popup.png');   // 毎回「やっつけた」演出カード（1.6秒）
+      setTimeout(()=>{ if(sid !== state.session) return; openItemPick(wasLast ? 'final' : 'level'); }, 1600);
       return;
     } else {
       flash('⭕', 'var(--good)');   // まだ続くときだけ ⭕ を出す
@@ -222,8 +217,15 @@ function choose(btn, correct){
 }
 
 function endGame(win){
-  if(win){ $('clearScore').textContent = state.score; show('cleared'); }
-  else { $('overScore').textContent = state.score; show('over'); }
+  if(win){
+    $('clearScore').textContent = state.score;
+    $('clearItems').textContent = progress.items.length;   // もらった どうぐの かず
+    const defeats = Object.values(progress.collection).reduce((a, r) => a + (r.count || 0), 0);
+    $('clearYokai').textContent = defeats;                  // たおした ようかいの かず
+    show('cleared');
+  } else {
+    $('overScore').textContent = state.score; show('over');
+  }
 }
 
 /* ---- 演出 ---- */
@@ -348,11 +350,14 @@ function flashImage(src){
 /* ---- どうぐ（レベルクリアのごほうび。Aまで＝あつめて表示するだけ） ---- */
 function itemById(id){ return ITEMS.find(x => x.id === id); }
 
-function openItemPick(wasLast){
-  state.pendingLast = wasLast;
-  const picks = shuffle(ITEMS.slice()).slice(0, 3);
-  const box = $('itemChoices'); box.innerHTML = '';
-  picks.forEach(it => {
+function openItemPick(mode){
+  const isFinal = (mode === 'final');   // 最後だけ全25種から「選び放題」、通常は3こからランダム
+  state.finalPick = isFinal;
+  const list = isFinal ? ITEMS.slice() : shuffle(ITEMS.slice()).slice(0, 3);
+  const box = $('itemChoices');
+  box.className = 'item-row' + (isFinal ? ' all' : '');
+  box.innerHTML = '';
+  list.forEach(it => {
     const b = document.createElement('button');
     b.className = 'item-choice';
     b.innerHTML = faceHTML(it) + '<span class="ic-nm">'+it.nm+'</span>';
@@ -364,8 +369,8 @@ function openItemPick(wasLast){
 function pickItem(it){
   progress.items.push(it.id);
   saveProgress();
-  if(state.pendingLast){
-    setTimeout(()=> endGame(true), 500);
+  if(state.finalPick){
+    endGame(true);                 // 最後：そのまま おめでとう画面へ
   } else {
     state.levelIdx++; state.yokaiIdx++;
     renderTop();

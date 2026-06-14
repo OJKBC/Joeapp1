@@ -381,6 +381,26 @@
     background: url('images/hero_select_bg.png') center / cover no-repeat, var(--night-1);
   }
   .ip-title { width: min(80%, 380px); height: auto; margin: 4px auto 2px; filter: drop-shadow(0 4px 7px rgba(0,0,0,.5)); }
+  /* 最後の「選び放題」：全アイテムをグリッドで */
+  .item-row.all { flex-direction: row; flex-wrap: wrap; gap: 10px; }
+  .item-row.all .item-choice {
+    width: min(28vw, 140px); flex-direction: column; gap: 4px;
+    font-size: min(22vw, 92px); padding: 8px 6px; border-radius: 18px; max-width: none;
+  }
+  .item-row.all .item-choice .ic-nm { font-size: 13px; }
+
+  /* クリア画面の成績パネル */
+  .clear-stats {
+    background: rgba(13,8,30,.62); border: 2px solid rgba(255,210,63,.5);
+    border-radius: 18px; padding: 12px 18px; width: min(86%, 360px);
+    display: flex; flex-direction: column; gap: 8px;
+    box-shadow: 0 6px 16px rgba(0,0,0,.5);
+  }
+  .clear-stats .cs-row {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 14px;
+    font-size: 20px; font-weight: 800; color: var(--paper);
+  }
+  .clear-stats .cs-row b { font-size: 26px; color: var(--gold); }
   .item-row { display: flex; flex-direction: column; gap: 14px; width: 100%; align-items: center; }
   .item-choice {
     font-family: inherit; border: none; cursor: pointer;
@@ -516,7 +536,11 @@
 
   <!-- CLEARED -->
   <section id="cleared" class="screen">
-    <div class="score-pill">⭐ <span id="clearScore">0</span> てん</div>
+    <div class="clear-stats">
+      <div class="cs-row"><span>⭐ すこあ</span><b id="clearScore">0</b></div>
+      <div class="cs-row"><span>🎒 どうぐ</span><b id="clearItems">0</b></div>
+      <div class="cs-row"><span>👹 ようかい</span><b id="clearYokai">0</b></div>
+    </div>
     <button class="btn" id="againBtn">もういちど あそぶ</button>
   </section>
 
