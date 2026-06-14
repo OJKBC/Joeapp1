@@ -88,18 +88,45 @@ function startGame(){
   state.session++;
   state.hearts = CONFIG.startHearts; state.score = 0;
   state.levelIdx = 0; state.yokaiIdx = 0;
-  newQueue(); spawnYokai(); renderTop();
-  show('battle'); nextQuestion();
+  renderTop();
+  startLevel();
 }
 function newQueue(){ state.queue = shuffle(LEVELS[state.levelIdx].items.slice()); }
 function yokaiById(id){ return YOKAI.find(y => y.id === id); }
-function spawnYokai(){
+
+/* レベル開始：もんだいを用意して「ようかいをえらぶ」画面へ */
+function startLevel(){
+  newQueue();
+  openYokaiSelect();
+}
+/* このレベルの妖怪グループから1体えらばせる（案②） */
+function openYokaiSelect(){
+  const group = (typeof YOKAI_BY_LEVEL !== 'undefined' && YOKAI_BY_LEVEL[state.levelIdx]) || YOKAI.map(y => y.id);
+  $('yokaiSelLv').textContent = state.levelIdx + 1;
+  const box = $('yokaiChoices'); box.innerHTML = '';
+  group.forEach(id => {
+    const yk = yokaiById(id);
+    if(!yk) return;
+    const b = document.createElement('button');
+    b.className = 'yokai-choice';
+    b.innerHTML = faceHTML(yk) + '<span class="yc-nm">' + yk.nm + '</span>';
+    b.onclick = () => chooseYokai(yk);
+    box.appendChild(b);
+  });
+  show('yokaiSelect');
+}
+function chooseYokai(yk){
+  spawnYokai(yk);
+  renderTop();
+  show('battle');
+  state.busy = false;
+  nextQuestion();
+}
+/* えらばれた妖怪をバトルにセット */
+function spawnYokai(yk){
+  state.yokai = yk;
   state.yokaiHpMax = LEVELS[state.levelIdx].hp || CONFIG.yokaiHp;
   state.yokaiHp = state.yokaiHpMax;
-  // このレベルの妖怪グループから ランダムで1体（案①）。将来ここを「選ぶ」にする（案②）
-  const group = (typeof YOKAI_BY_LEVEL !== 'undefined' && YOKAI_BY_LEVEL[state.levelIdx]) || YOKAI.map(y => y.id);
-  const pickId = group[Math.floor(Math.random() * group.length)];
-  state.yokai = yokaiById(pickId) || YOKAI[0];
   setFace($('yokai'), state.yokai);
   $('enemyName').textContent = state.yokai.nm;
   $('yokaiHp').style.width = '100%';
@@ -331,10 +358,9 @@ function pickItem(it){
   if(state.pendingLast){
     setTimeout(()=> endGame(true), 500);
   } else {
-    state.levelIdx++; state.yokaiIdx++; newQueue();
-    spawnYokai(); renderTop();
-    show('battle');
-    setTimeout(nextQuestion, 500);
+    state.levelIdx++; state.yokaiIdx++;
+    renderTop();
+    setTimeout(startLevel, 400);   // 次レベルの「ようかいをえらぶ」へ
   }
 }
 

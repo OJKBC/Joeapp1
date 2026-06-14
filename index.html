@@ -104,6 +104,21 @@
   .hero-card .face { font-size: clamp(82px, 26vw, 128px); display: block; }
   .hero-card .nm { font-weight: 800; margin-top: 2px; font-size: 17px; }
 
+  /* yokai select（たたかう相手をえらぶ） */
+  #yokaiSelect { justify-content: flex-start; gap: 18px; overflow-y: auto; }
+  .yokai-row { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; width: 100%; }
+  .yokai-choice {
+    font-family: inherit; border: none; cursor: pointer; color: var(--paper);
+    width: 150px; border-radius: 22px; padding: 12px 8px;
+    font-size: clamp(86px, 26vw, 120px);
+    background: rgba(255,255,255,.08); border: 3px solid rgba(255,255,255,.18);
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    transition: transform .1s ease, border-color .1s ease, background .1s ease;
+  }
+  .yokai-choice .yc-nm { font-size: 16px; font-weight: 800; }
+  .yokai-choice:active { transform: scale(.94); border-color: var(--gold); background: rgba(255,210,63,.18); }
+  .yokai-choice:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
+
   /* battle */
   #battle { justify-content: flex-start; padding-top: 12px; gap: 10px; }
 
@@ -389,6 +404,12 @@
     <div class="heads">きみの ひーろーを えらんでね</div>
     <div class="hero-grid" id="heroGrid"></div>
     <button class="btn" id="goBattle" disabled style="opacity:.5">ばとるへ！</button>
+  </section>
+
+  <!-- YOKAI SELECT（レベルごとに たたかう相手をえらぶ） -->
+  <section id="yokaiSelect" class="screen">
+    <div class="heads">れべる <span id="yokaiSelLv">1</span><br>どの ようかいと たたかう？</div>
+    <div class="yokai-row" id="yokaiChoices"></div>
   </section>
 
   <!-- BATTLE -->
