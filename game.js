@@ -185,7 +185,8 @@ function choose(btn, correct){
     if(state.yokaiHp <= 0){
       registerYokai(state.yokai, state.levelIdx);          // 図鑑に登録
       const wasLast = state.levelIdx >= LEVELS.length - 1;
-      flashText(wasLast ? 'ぜんぶ くりあ！' : 'やっつけた！','var(--gold)');  // トドメは文字だけ（⭕は出さない）
+      if(wasLast) flashText('ぜんぶ くりあ！','var(--gold)');
+      else flashImage('images/defeat_popup.png');   // 妖怪をたおした演出カード
       setTimeout(()=>{ if(sid !== state.session) return; openItemPick(wasLast); }, 900);  // ばとるあいてむを1こえらぶ
       return;
     } else {
@@ -334,6 +335,10 @@ function flash(symbol, color){
 function flashText(txt, color){
   const f = $('flash'); f.textContent = txt; f.style.color = color; f.style.fontSize = '14vw';
   f.classList.remove('show'); void f.offsetWidth; f.classList.add('show');
+}
+function flashImage(src){
+  const p = $('popup'); $('popupImg').src = src;
+  p.classList.remove('show'); void p.offsetWidth; p.classList.add('show');
 }
 
 /* ---- どうぐ（レベルクリアのごほうび。Aまで＝あつめて表示するだけ） ---- */
