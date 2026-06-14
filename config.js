@@ -115,7 +115,17 @@ const YOKAI_BY_LEVEL = [
 /* バトルの背景（緑のフィールドのかわり）。バトルごとに この中から ランダムで1枚。
    ※増やすときは images/ に入れて、ここにファイル名を足すだけ。 */
 const BATTLE_BGS = [
-  'images/battle_bg_01.png'
+  'images/battle_bg_01.png',          // 和風ステージ（最初の1枚）
+  'images/01_volcano.png',
+  'images/02_thunderstorm.png',
+  'images/03_enchanted_forest.png',
+  'images/04_ice_cavern.png',
+  'images/05_desert_wasteland.png',
+  'images/06_purple_ruins.png',
+  'images/07_sky_temple.png',
+  'images/08_poison_swamp.png',
+  'images/09_cosmic_arena.png',
+  'images/10_moonlit_shrine.png'
 ];
 
 /* レベルクリアで1こもらえる どうぐ（3こから1こえらぶ）。
