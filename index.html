@@ -85,8 +85,15 @@
   .game-logo .pop { color: var(--gold); }
 
   /* hero select */
-  #select { justify-content: flex-start; gap: 12px; overflow-y: auto; }
+  #select {
+    justify-content: flex-start; gap: 12px; overflow-y: auto;
+    background: url('images/hero_select_bg.png') center / cover no-repeat, var(--night-1);
+  }
   .heads { font-size: 24px; font-weight: 800; }
+  .hs-title {
+    height: clamp(140px, 24vh, 220px); width: auto; max-width: 82%;
+    margin: 2px auto 0; filter: drop-shadow(0 4px 7px rgba(0,0,0,.5));
+  }
   .hero-grid {
     display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%;
     align-content: start; padding: 2px;
@@ -425,7 +432,7 @@
 
   <!-- HERO SELECT -->
   <section id="select" class="screen">
-    <div class="heads">きみの ひーろーを えらんでね</div>
+    <img class="hs-title" src="images/hero_select_title.png" alt="きみの ひーろーを えらんでね" />
     <div class="hero-grid" id="heroGrid"></div>
     <button class="btn" id="goBattle" disabled style="opacity:.5">ばとるへ！</button>
   </section>
