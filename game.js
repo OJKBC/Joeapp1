@@ -278,10 +278,10 @@ function fireProjectile(fromEl, toEl, kind, onImpact){
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(reduce){ done(); return; }
   const field = document.querySelector('.field');
-  // 発射元はお腹(中央)ではなく、上のほう・敵に近い前側＝手元から出す
-  const ox = kind === 'enemy' ? 0.32 : 0.68;
-  const s = pointIn(field, fromEl, ox, 0.30);
-  const e = pointIn(field, toEl, 0.5, 0.42);   // 着弾は相手の体の少し上
+  // ポーズに依存しないよう「体のどこか」ではなく "少し前（敵側）" に光の玉が現れて飛ぶ
+  const ox = kind === 'enemy' ? -0.02 : 1.02;   // ヒーロー/妖怪の前方ふち
+  const s = pointIn(field, fromEl, ox, 0.34);
+  const e = pointIn(field, toEl, 0.5, 0.42);    // 着弾は相手の体の少し上
   const p = document.createElement('div');
   p.className = 'projectile ' + kind;
   p.style.left = s.x + 'px'; p.style.top = s.y + 'px';
