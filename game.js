@@ -252,6 +252,11 @@ function centerIn(field, el){
   const fr = field.getBoundingClientRect(), r = el.getBoundingClientRect();
   return { x: r.left + r.width/2 - fr.left, y: r.top + r.height/2 - fr.top };
 }
+/* 要素の相対位置(fx,fy: 0=左上, 1=右下)の点。発射を手元（上・前）から出すのに使う */
+function pointIn(field, el, fx, fy){
+  const fr = field.getBoundingClientRect(), r = el.getBoundingClientRect();
+  return { x: r.left + r.width*fx - fr.left, y: r.top + r.height*fy - fr.top };
+}
 function impact(toEl){
   playImpact(); screenShake();
   toEl.classList.add('hit'); setTimeout(()=>toEl.classList.remove('hit'), 400);
@@ -273,7 +278,10 @@ function fireProjectile(fromEl, toEl, kind, onImpact){
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(reduce){ done(); return; }
   const field = document.querySelector('.field');
-  const s = centerIn(field, fromEl), e = centerIn(field, toEl);
+  // 発射元はお腹(中央)ではなく、上のほう・敵に近い前側＝手元から出す
+  const ox = kind === 'enemy' ? 0.32 : 0.68;
+  const s = pointIn(field, fromEl, ox, 0.30);
+  const e = pointIn(field, toEl, 0.5, 0.42);   // 着弾は相手の体の少し上
   const p = document.createElement('div');
   p.className = 'projectile ' + kind;
   p.style.left = s.x + 'px'; p.style.top = s.y + 'px';
