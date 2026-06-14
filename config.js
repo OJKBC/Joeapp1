@@ -65,15 +65,44 @@ const HEROES = [
   {face:'🐲', nm:'りゅうきし',   img:'images/hero_black_dragoon_512.webp'}
 ];
 
-/* 妖怪（レベルごとに切り替わる。id は図鑑の保存キーに使う） */
+/* 妖怪マスター（図鑑はこの全部を表示）。id は図鑑の保存キー。 */
 const YOKAI = [
+  // もとからの7体
   {id:'kodamaru',       face:'🌳', nm:'こだまる',       img:'images/kodamaru_512.png'},
   {id:'patamon',        face:'🐦', nm:'ぱたもん',       img:'images/patamon_512.png'},
   {id:'moyakage',       face:'🌫️', nm:'もやかげ',       img:'images/moyakage_512.png'},
   {id:'shuppou',        face:'🚂', nm:'しゅっぽう',     img:'images/shuppou_512.png'},
   {id:'noroizao',       face:'🪄', nm:'のろいざお',     img:'images/noroizao_512.png'},
   {id:'kyouran_gitsune',face:'🦊', nm:'きょうらんぎつね',img:'images/kyouran_gitsune_512.png'},
-  {id:'garan_oni',      face:'👹', nm:'がらんおに',     img:'images/garan_oni_512.png'}
+  {id:'garan_oni',      face:'👹', nm:'がらんおに',     img:'images/garan_oni_512.png'},
+  // 追加（よわい系）
+  {id:'wood_sprite',    face:'🌱', nm:'もりのせい',     img:'images/enemy_wood_sprite_512.webp'},
+  {id:'small_skeleton', face:'💀', nm:'ちびがいこつ',   img:'images/enemy_small_skeleton_512.webp'},
+  {id:'lantern_yokai',  face:'🏮', nm:'ちょうちんおばけ',img:'images/enemy_lantern_yokai_512.webp'},
+  {id:'mud_golem',      face:'🟤', nm:'どろごーれむ',   img:'images/enemy_mud_golem_512.webp'},
+  // 追加（つよい系）
+  {id:'rock_monster',   face:'🪨', nm:'いわおとこ',     img:'images/yokai_rock_monster_512.webp'},
+  {id:'gorilla',        face:'🦍', nm:'ごりら',         img:'images/yokai_gorilla_512.webp'},
+  {id:'robot_red',      face:'🔴', nm:'あかろぼ',       img:'images/yokai_robot_red_512.webp'},
+  {id:'robot_ninja',    face:'🤖', nm:'にんじゃろぼ',   img:'images/yokai_robot_ninja_512.webp'},
+  {id:'skeleton_knight',face:'⚔️', nm:'がいこつきし',   img:'images/yokai_skeleton_knight_512.webp'},
+  {id:'weapon_octopus', face:'🐙', nm:'ぶきだこ',       img:'images/yokai_weapon_octopus_512.webp'},
+  {id:'multiarm_giant', face:'🦾', nm:'うでだらけきょじん',img:'images/yokai_multiarm_giant_512.webp'},
+  {id:'robot_castle',   face:'🏰', nm:'おしろろぼ',     img:'images/yokai_robot_castle_512.webp'},
+  {id:'thunder_dragon', face:'⚡', nm:'かみなりどらごん',img:'images/yokai_thunder_dragon_512.webp'},
+  {id:'humanoid_dragon',face:'🐉', nm:'りゅうじん',     img:'images/yokai_humanoid_dragon_512.webp'}
+];
+
+/* レベルごとに登場する妖怪（id）。バトルのたびに この中から ランダムで1体でる。
+   ※やさしい見た目を前半、つよそうを後半に。並べ替え/入れ替え自由。 */
+const YOKAI_BY_LEVEL = [
+  ['kodamaru','wood_sprite','small_skeleton'],        // Lv1
+  ['patamon','lantern_yokai','mud_golem'],            // Lv2
+  ['moyakage','rock_monster','gorilla'],              // Lv3
+  ['shuppou','robot_red','robot_ninja'],              // Lv4
+  ['noroizao','skeleton_knight','weapon_octopus'],    // Lv5
+  ['kyouran_gitsune','multiarm_giant','robot_castle'],// Lv6
+  ['garan_oni','thunder_dragon','humanoid_dragon']    // Lv7（ボス）
 ];
 
 /* レベルクリアで1こもらえる どうぐ（3こから1こえらぶ）。

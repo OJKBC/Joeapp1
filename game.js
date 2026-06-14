@@ -92,10 +92,14 @@ function startGame(){
   show('battle'); nextQuestion();
 }
 function newQueue(){ state.queue = shuffle(LEVELS[state.levelIdx].items.slice()); }
+function yokaiById(id){ return YOKAI.find(y => y.id === id); }
 function spawnYokai(){
   state.yokaiHpMax = LEVELS[state.levelIdx].hp || CONFIG.yokaiHp;
   state.yokaiHp = state.yokaiHpMax;
-  state.yokai = YOKAI[state.yokaiIdx % YOKAI.length];
+  // このレベルの妖怪グループから ランダムで1体（案①）。将来ここを「選ぶ」にする（案②）
+  const group = (typeof YOKAI_BY_LEVEL !== 'undefined' && YOKAI_BY_LEVEL[state.levelIdx]) || YOKAI.map(y => y.id);
+  const pickId = group[Math.floor(Math.random() * group.length)];
+  state.yokai = yokaiById(pickId) || YOKAI[0];
   setFace($('yokai'), state.yokai);
   $('enemyName').textContent = state.yokai.nm;
   $('yokaiHp').style.width = '100%';
