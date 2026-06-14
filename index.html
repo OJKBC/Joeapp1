@@ -352,7 +352,11 @@
   .btn-sub:active { box-shadow: 0 1px 0 var(--yokai-dark); }
 
   /* item pick（レベルクリアで1こえらぶ。1行に1こ・大きめ） */
-  #itemPick { justify-content: center; gap: 16px; overflow-y: auto; }
+  #itemPick {
+    justify-content: flex-start; gap: 14px; overflow-y: auto;
+    background: url('images/hero_select_bg.png') center / cover no-repeat, var(--night-1);
+  }
+  .ip-title { width: min(80%, 380px); height: auto; margin: 4px auto 2px; filter: drop-shadow(0 4px 7px rgba(0,0,0,.5)); }
   .item-row { display: flex; flex-direction: column; gap: 14px; width: 100%; align-items: center; }
   .item-choice {
     font-family: inherit; border: none; cursor: pointer;
@@ -496,8 +500,7 @@
 
   <!-- ITEM PICK（レベルクリアで1こえらぶ） -->
   <section id="itemPick" class="screen">
-    <div class="big-emoji">🎁</div>
-    <div class="end-title">ばとるあいてむを 1こ えらんでね</div>
+    <img class="ip-title" src="images/item_pick_title.png" alt="ばとるあいてむを 1こ えらんでね" />
     <div class="item-row" id="itemChoices"></div>
   </section>
 
