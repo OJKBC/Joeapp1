@@ -226,7 +226,6 @@ function endGame(win){
     const defeats = Object.values(progress.collection).reduce((a, r) => a + (r.count || 0), 0);
     $('clearYokai').textContent = defeats;                  // たおした ようかいの かず
     show('cleared');
-    playFanfare();                                          // パンパカパーン！
   } else {
     $('overScore').textContent = state.score; show('over');
   }
@@ -425,6 +424,7 @@ function defeatYokai(sid){
   registerYokai(state.yokai, state.levelIdx);              // 図鑑に登録
   const wasLast = state.levelIdx >= LEVELS.length - 1;
   flashImage('images/defeat_popup.png');                   // 「やっつけた」演出カード（1.6秒）
+  playFanfare();                                           // パンパカパーン！（毎回のクリアで）
   setTimeout(()=>{ if(sid !== state.session) return; openItemPick(wasLast ? 'final' : 'level'); }, 1600);
 }
 function openItemPick(mode){
