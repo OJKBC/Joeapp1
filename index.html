@@ -105,7 +105,20 @@
   .hero-card .nm { font-weight: 800; margin-top: 2px; font-size: 17px; }
 
   /* yokai select（たたかう相手をえらぶ） */
-  #yokaiSelect { justify-content: flex-start; gap: 18px; overflow-y: auto; }
+  #yokaiSelect {
+    justify-content: flex-start; gap: 16px; overflow-y: auto;
+    background: url('images/yokai_select_bg.png') center / cover no-repeat, var(--night-1);
+  }
+  /* れべる（画像）＋ 数字 */
+  .ys-level { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 4px; }
+  .ys-level-img { height: clamp(46px, 13vw, 68px); width: auto; }
+  .ys-level-num {
+    font-size: clamp(44px, 13vw, 68px); font-weight: 900; line-height: 1;
+    color: var(--gold); -webkit-text-stroke: 2.5px var(--ink);
+    paint-order: stroke fill; text-shadow: 0 4px 0 rgba(0,0,0,.45);
+  }
+  /* どの ようかいと たたかう？（画像バナー） */
+  .ys-title { width: min(94%, 480px); height: auto; filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
   .yokai-row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; align-items: stretch; width: 100%; }
   .yokai-choice {
     font-family: inherit; border: none; cursor: pointer; color: var(--paper);
@@ -419,7 +432,11 @@
 
   <!-- YOKAI SELECT（レベルごとに たたかう相手をえらぶ） -->
   <section id="yokaiSelect" class="screen">
-    <div class="heads">れべる <span id="yokaiSelLv">1</span><br>どの ようかいと たたかう？</div>
+    <div class="ys-level">
+      <img class="ys-level-img" src="images/yokai_select_level.png" alt="れべる" />
+      <span class="ys-level-num" id="yokaiSelLv">1</span>
+    </div>
+    <img class="ys-title" src="images/yokai_select_title.png" alt="どの ようかいと たたかう？" />
     <div class="yokai-row" id="yokaiChoices"></div>
   </section>
 
