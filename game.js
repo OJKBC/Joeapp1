@@ -331,44 +331,54 @@ function playBeam(kind){
   noise.connect(lp).connect(ng).connect(ctx.destination);
   noise.start(t); noise.stop(t + dur);
 }
-/* 大きな波動拳の「ゴゴゴゴ…ドーン」 */
+/* 大きな こうげきの 爆発音「ドッカーン！」（最初から ドンと くる） */
 function playHadouken(){
   const ctx = ensureAudio(); if(!ctx) return;
-  const t = ctx.currentTime, dur = 0.72;
-  // 1) 低音のうなり（sawtooth）＋ tremolo で「ゴゴゴ」
-  const osc = ctx.createOscillator(), g = ctx.createGain();
-  osc.type = 'sawtooth';
-  osc.frequency.setValueAtTime(72, t);
-  osc.frequency.exponentialRampToValueAtTime(36, t + dur);
-  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass';
-  lp.frequency.setValueAtTime(520, t);
-  lp.frequency.exponentialRampToValueAtTime(150, t + dur);
-  g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(0.5, t + 0.06);
-  g.gain.setValueAtTime(0.5, t + dur - 0.16);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  // tremolo（ゴゴゴのリズム：だんだんゆっくり）
-  const lfo = ctx.createOscillator(), lg = ctx.createGain();
-  lfo.type = 'square';
-  lfo.frequency.setValueAtTime(20, t);
-  lfo.frequency.exponentialRampToValueAtTime(7, t + dur);
-  lg.gain.value = 0.22;
-  lfo.connect(lg).connect(g.gain);
-  osc.connect(lp).connect(g).connect(ctx.destination);
-  osc.start(t); osc.stop(t + dur);
-  lfo.start(t); lfo.stop(t + dur);
-  // 2) ノイズの ウォーッシュ（大きめ）
+  const t = ctx.currentTime, dur = 0.9;
+
+  // 1) 「ドッ」… 鋭い破裂のクラック（高めのノイズを一瞬だけ）
+  const cb = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.06), ctx.sampleRate);
+  const cd = cb.getChannelData(0);
+  for(let i = 0; i < cd.length; i++) cd[i] = Math.random() * 2 - 1;
+  const crack = ctx.createBufferSource(); crack.buffer = cb;
+  const chp = ctx.createBiquadFilter(); chp.type = 'highpass'; chp.frequency.value = 1800;
+  const cg = ctx.createGain();
+  cg.gain.setValueAtTime(0.6, t);
+  cg.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+  crack.connect(chp).connect(cg).connect(ctx.destination);
+  crack.start(t); crack.stop(t + 0.06);
+
+  // 2) 「ドーン」… 深い爆発の胴鳴り（急降下するキック）
+  const kick = ctx.createOscillator(), kg = ctx.createGain();
+  kick.type = 'sine';
+  kick.frequency.setValueAtTime(180, t);
+  kick.frequency.exponentialRampToValueAtTime(38, t + 0.5);   // ストンと低音へ落ちる
+  kg.gain.setValueAtTime(0.9, t);                              // 立ち上がりは一瞬（溜めない）
+  kg.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  kick.connect(kg).connect(ctx.destination);
+  kick.start(t); kick.stop(t + dur);
+
+  // 3) サブ低音の ずっしり感
+  const sub = ctx.createOscillator(), sg = ctx.createGain();
+  sub.type = 'triangle';
+  sub.frequency.setValueAtTime(70, t);
+  sub.frequency.exponentialRampToValueAtTime(28, t + 0.6);
+  sg.gain.setValueAtTime(0.5, t);
+  sg.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  sub.connect(sg).connect(ctx.destination);
+  sub.start(t); sub.stop(t + dur);
+
+  // 4) 「カーン／シャーッ」… 爆発のノイズが ゆっくり減衰
   const nb = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate);
   const nd = nb.getChannelData(0);
   for(let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
   const noise = ctx.createBufferSource(); noise.buffer = nb;
   const nlp = ctx.createBiquadFilter(); nlp.type = 'lowpass';
-  nlp.frequency.setValueAtTime(900, t);
-  nlp.frequency.exponentialRampToValueAtTime(120, t + dur);
+  nlp.frequency.setValueAtTime(3500, t);
+  nlp.frequency.exponentialRampToValueAtTime(180, t + dur);   // だんだん こもって 遠ざかる
   const ng = ctx.createGain();
-  ng.gain.setValueAtTime(0.0001, t);
-  ng.gain.exponentialRampToValueAtTime(0.3, t + 0.1);
-  ng.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  ng.gain.setValueAtTime(0.7, t);                             // ドンと出て
+  ng.gain.exponentialRampToValueAtTime(0.0001, t + dur);      // 長めに減衰
   noise.connect(nlp).connect(ng).connect(ctx.destination);
   noise.start(t); noise.stop(t + dur);
 }
@@ -522,10 +532,21 @@ function defeatYokai(sid){
     setTimeout(()=>{ if(sid !== state.session) return; openItemPick(wasLast ? 'final' : 'level'); }, 1600);
   }, 3000);
 }
+/* 4タイプ（attack/heal/guard/hint）から 1こずつ ランダムに えらぶ */
+function pickOnePerEffect(){
+  const picks = ['attack', 'heal', 'guard', 'hint'].map(eff => {
+    const cands = ITEMS.filter(it => it.effect === eff);
+    return cands.length ? cands[Math.floor(Math.random() * cands.length)] : null;
+  }).filter(Boolean);
+  return shuffle(picks);   // 並び順もランダムに
+}
 function openItemPick(mode){
-  const isFinal = (mode === 'final');   // 最後だけ全25種から「選び放題」、通常は3こからランダム
+  const isFinal = (mode === 'final');   // 最後だけ全25種から「3こ えらべる」、通常は4タイプ1こずつ
   state.finalPick = isFinal;
-  const list = isFinal ? ITEMS.slice() : shuffle(ITEMS.slice()).slice(0, 3);
+  state.finalPicksLeft = isFinal ? 3 : 0;
+  const fc = $('finalCount');
+  if(fc){ fc.style.display = isFinal ? '' : 'none'; if(isFinal) updateFinalCount(); }
+  const list = isFinal ? ITEMS.slice() : pickOnePerEffect();
   const box = $('itemChoices');
   box.className = 'item-row' + (isFinal ? ' all' : '');
   box.innerHTML = '';
@@ -542,11 +563,21 @@ function openItemPick(mode){
   });
   show('itemPick');
 }
+function updateFinalCount(){
+  const fc = $('finalCount');
+  if(fc) fc.textContent = 'あと ' + state.finalPicksLeft + 'こ えらべるよ！';
+}
 function pickItem(it){
   progress.items.push(it.id);
   saveProgress();
   if(state.finalPick){
-    endGame(true);                 // 最後：そのまま おめでとう画面へ
+    state.finalPicksLeft--;
+    if(state.finalPicksLeft <= 0){
+      endGame(true);               // 3こ えらび終わったら おめでとう画面へ
+    } else {
+      updateFinalCount();          // まだ えらべる：カウンター更新＆選んだ演出
+      popItem(it);
+    }
   } else {
     state.levelIdx++; state.yokaiIdx++;
     renderTop();
