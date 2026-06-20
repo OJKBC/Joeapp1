@@ -95,21 +95,39 @@ const YOKAI = [
   {id:'multiarm_giant', face:'🦾', nm:'うでだらけきょじん',col:'#c06ad6', img:'images/yokai_multiarm_giant_512.webp'},
   {id:'robot_castle',   face:'🏰', nm:'おしろろぼ',     col:'#c9a24a', img:'images/yokai_robot_castle_512.webp'},
   {id:'thunder_dragon', face:'⚡', nm:'かみなりどらごん',col:'#ffd23f', img:'images/yokai_thunder_dragon_512.webp'},
-  {id:'humanoid_dragon',face:'🐉', nm:'りゅうじん',     col:'#46c2e3', img:'images/yokai_humanoid_dragon_512.webp'}
+  {id:'humanoid_dragon',face:'🐉', nm:'りゅうじん',     col:'#46c2e3', img:'images/yokai_humanoid_dragon_512.webp'},
+  // 追加（よわい系・8体）
+  {id:'kasa_obake',     face:'🌂', nm:'からかさ',       col:'#c98ad6', img:'images/weak_yokai_8_512_square_transparent_webp/01_kasa_obake_512.webp'},
+  {id:'clay_golem',     face:'🧱', nm:'ねんどゴーレム', col:'#c89b6a', img:'images/weak_yokai_8_512_square_transparent_webp/02_mud_golem_512.webp'},
+  {id:'paper_lantern',  face:'🪔', nm:'かみちょうちん', col:'#ffcf6a', img:'images/weak_yokai_8_512_square_transparent_webp/03_paper_lantern_yokai_512.webp'},
+  {id:'origami_fox',    face:'🦊', nm:'おりがみぎつね', col:'#ff9c5a', img:'images/weak_yokai_8_512_square_transparent_webp/04_origami_fox_512.webp'},
+  {id:'purple_bat',     face:'🦇', nm:'こうもりん',     col:'#9b6ad6', img:'images/weak_yokai_8_512_square_transparent_webp/05_purple_bat_yokai_512.webp'},
+  {id:'mushroom_goblin',face:'🍄', nm:'きのこおばけ',   col:'#e06a5a', img:'images/weak_yokai_8_512_square_transparent_webp/06_mushroom_goblin_512.webp'},
+  {id:'straw_doll',     face:'🪆', nm:'わらにんぎょう', col:'#d6b86a', img:'images/weak_yokai_8_512_square_transparent_webp/07_straw_doll_512.webp'},
+  {id:'rock_goblin',    face:'🗿', nm:'いわこぞう',     col:'#9b8c7a', img:'images/weak_yokai_8_512_square_transparent_webp/08_rock_goblin_512.webp'},
+  // 追加（つよい系・8体）
+  {id:'phoenix',        face:'🔥', nm:'ふぇにっくす',   col:'#ff6a2b', img:'images/strong_yokai_8_512_square_transparent_webp/01_phoenix_512.webp'},
+  {id:'fire_tiger',     face:'🐯', nm:'ほのおとら',     col:'#ff7a3d', img:'images/strong_yokai_8_512_square_transparent_webp/02_fire_tiger_512.webp'},
+  {id:'tengu_warrior',  face:'👺', nm:'てんぐむしゃ',   col:'#d63b3b', img:'images/strong_yokai_8_512_square_transparent_webp/03_tengu_warrior_512.webp'},
+  {id:'anaconda_warrior',face:'🐍',nm:'へびせんし',     col:'#6ad65a', img:'images/strong_yokai_8_512_square_transparent_webp/04_anaconda_warrior_512.webp'},
+  {id:'spider_queen',   face:'🕷️', nm:'くものじょおう', col:'#b14aed', img:'images/strong_yokai_8_512_square_transparent_webp/05_spider_queen_512.webp'},
+  {id:'purple_beast',   face:'🐺', nm:'むらさきじゅう', col:'#a05ad6', img:'images/strong_yokai_8_512_square_transparent_webp/06_purple_beast_warrior_512.webp'},
+  {id:'sea_god',        face:'🔱', nm:'うみがみせんし', col:'#2b9cff', img:'images/strong_yokai_8_512_square_transparent_webp/07_sea_god_warrior_512.webp'},
+  {id:'ice_beast',      face:'🧊', nm:'こおりのけもの', col:'#5ac2e3', img:'images/strong_yokai_8_512_square_transparent_webp/08_ice_beast_512.webp'}
 ];
 
 /* レベルごとに登場する妖怪（id）。バトルのたびに この中から ランダムで1体でる。
    ※やさしい見た目を前半、つよそうを後半に。並べ替え/入れ替え自由。 */
 const YOKAI_BY_LEVEL = [
-  ['kodamaru','wood_sprite'],                         // Lv1 2もじ①
-  ['patamon','small_skeleton'],                       // Lv2 2もじ②
-  ['moyakage','lantern_yokai'],                       // Lv3 3もじ①
-  ['shuppou','mud_golem'],                            // Lv4 3もじ②
-  ['noroizao','rock_monster','gorilla'],              // Lv5 てんてん
-  ['kyouran_gitsune','robot_red','robot_ninja'],      // Lv6 まる
-  ['skeleton_knight','weapon_octopus'],               // Lv7 っ
-  ['multiarm_giant','robot_castle'],                  // Lv8 ー
-  ['garan_oni','thunder_dragon','humanoid_dragon']    // Lv9 拗音（ボス）
+  ['kodamaru','patamon','wood_sprite','kasa_obake','mushroom_goblin'],            // Lv1 2もじ①
+  ['moyakage','small_skeleton','origami_fox','purple_bat','straw_doll'],          // Lv2 2もじ②
+  ['shuppou','lantern_yokai','paper_lantern','clay_golem','rock_goblin'],         // Lv3 3もじ①
+  ['noroizao','mud_golem','kyouran_gitsune','rock_monster','gorilla'],            // Lv4 3もじ②
+  ['robot_red','robot_ninja','skeleton_knight','fire_tiger','anaconda_warrior'],  // Lv5 てんてん
+  ['weapon_octopus','multiarm_giant','spider_queen','purple_beast','tengu_warrior'],// Lv6 まる
+  ['robot_castle','sea_god','ice_beast','phoenix','thunder_dragon'],              // Lv7 っ
+  ['humanoid_dragon','fire_tiger','tengu_warrior','anaconda_warrior','ice_beast'],// Lv8 ー
+  ['garan_oni','thunder_dragon','humanoid_dragon','spider_queen','phoenix']       // Lv9 拗音（ボス）
 ];
 
 /* バトルの背景（緑のフィールドのかわり）。バトルごとに この中から ランダムで1枚。

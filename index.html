@@ -126,16 +126,16 @@
   }
   /* どの ようかいと たたかう？（画像バナー） */
   .ys-title { width: min(94%, 480px); height: auto; filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
-  .yokai-row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; align-items: stretch; width: 100%; }
+  .yokai-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: stretch; width: 100%; }
   .yokai-choice {
     font-family: inherit; border: none; cursor: pointer; color: var(--paper);
-    width: min(44vw, 240px); border-radius: 26px; padding: 14px 10px;
-    font-size: min(42vw, 30vh, 210px);
+    width: min(29vw, 160px); border-radius: 22px; padding: 10px 6px;
+    font-size: min(26vw, 22vh, 150px);
     background: transparent; border: 3px solid transparent;
-    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
     transition: transform .1s ease, border-color .1s ease, background .1s ease;
   }
-  .yokai-choice .yc-nm { font-size: clamp(18px, 5vw, 24px); font-weight: 800; }
+  .yokai-choice .yc-nm { font-size: clamp(14px, 3.6vw, 19px); font-weight: 800; }
   .yokai-choice:active { transform: scale(.94); border-color: var(--gold); background: rgba(255,210,63,.18); }
   .yokai-choice:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
 
@@ -765,8 +765,8 @@
 </div>
 
 <!-- 設定・もんだいデータ（編集はこちら）-->
-<script src="config.js?v=13"></script>
+<script src="config.js?v=14"></script>
 <!-- ゲームロジック -->
-<script src="game.js?v=13"></script>
+<script src="game.js?v=14"></script>
 </body>
 </html>
