@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>ひらがなばとる！</title>
 <style>
   :root {
@@ -39,6 +39,11 @@
     display: flex;
     flex-direction: column;
     position: relative;
+    /* iPhoneのノッチ/ホームバーに重ならないように */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 
   .screen {
@@ -91,7 +96,7 @@
   }
   .heads { font-size: 24px; font-weight: 800; }
   .hs-title {
-    height: clamp(80px, 14vh, 150px); width: auto; max-width: 78%;
+    height: clamp(180px, 33vh, 345px); width: auto; max-width: 100%;
     margin: 2px auto 0; filter: drop-shadow(0 4px 7px rgba(0,0,0,.5));
   }
   .hero-grid {
@@ -111,8 +116,8 @@
   .hero-card:active { transform: scale(.94); }
   .hero-card.sel { border-color: var(--gold); background: rgba(255,210,63,.18); }
   .hero-card .face { display: block; line-height: 1; width: 100%; }
-  /* ヒーロー画像を 列の幅いっぱいに（1行2体で画面いっぱい） */
-  .hero-card .face-img { width: 100%; height: auto; max-width: 340px; display: block; margin: 0 auto; }
+  /* ヒーロー画像（1行2体）。列幅より一回り小さめに */
+  .hero-card .face-img { width: 86%; height: auto; max-width: 290px; display: block; margin: 0 auto; }
   .hero-card .nm { font-weight: 800; margin-top: 2px; font-size: clamp(20px, 5.5vw, 30px); }
 
   /* yokai select（たたかう相手をえらぶ） */
@@ -246,28 +251,30 @@
     position: absolute;
     background: #f7f3e0; color: var(--ink);
     border: 3px solid var(--ink); border-radius: 10px;
-    padding: 5px 12px 7px;
+    padding: 5px 9px 7px;
     box-shadow: 3px 3px 0 rgba(0,0,0,.28);
     box-sizing: border-box;
-    width: 45%;
+    width: 46%; max-width: 240px;
   }
   .info.enemy { top: 8px; right: 8px; }
   .info.hero  { top: 8px; left: 8px; }
   .info .row1 {
     display: flex; justify-content: space-between; align-items: baseline;
-    font-weight: 800; font-size: clamp(12px, 3.6vw, 15px); gap: 8px; white-space: nowrap;
+    font-weight: 800; font-size: clamp(12px, 3.6vw, 15px); gap: 6px; white-space: nowrap;
   }
-  .info .lv { font-size: clamp(10px, 3vw, 12px); }
+  /* 名前が長くても箱からはみ出さない（…で省略） */
+  .info .row1 > span:first-child { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .info .lv { flex: none; font-size: clamp(10px, 3vw, 12px); }
   .hpline { display: flex; align-items: center; gap: 5px; margin-top: 4px; }
-  .hpline .hp { font-size: 10px; font-weight: 900; color: #d98a00; font-style: italic; }
+  .hpline .hp { font-size: 10px; font-weight: 900; color: #d98a00; font-style: italic; flex: none; }
   .hpbar {
-    flex: 1; height: 9px; background: #5a5048;
+    flex: 1; min-width: 0; height: 9px; background: #5a5048;
     border: 1px solid var(--ink); border-radius: 6px; overflow: hidden;
   }
   .hpbar > i { display: block; height: 100%; background: linear-gradient(#8dec5a, #3fae00); transition: width .3s ease; }
-  .statline { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; min-height: 20px; }
-  .info .hearts { font-size: 16px; letter-spacing: 1px; }
-  .info .score { font-size: 13px; font-weight: 800; color: #c79b14; white-space: nowrap; }
+  .statline { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 4px; min-height: 20px; }
+  .info .hearts { font-size: clamp(12px, 4vw, 16px); letter-spacing: 0; min-width: 0; overflow: hidden; white-space: nowrap; }
+  .info .score { font-size: 13px; font-weight: 800; color: #c79b14; white-space: nowrap; flex: none; }
 
   /* メッセージ枠（ポケモン下部のテキスト） */
   .msgbox {
@@ -521,6 +528,8 @@
     background: rgba(255,255,255,.14);
     border: 2px solid rgba(255,255,255,.32);
     box-shadow: 0 3px 0 rgba(0,0,0,.3);
+    padding: 0;
+    display: flex; align-items: center; justify-content: center;
     transition: transform .08s ease, box-shadow .08s ease;
   }
   .home-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.3); }
@@ -775,8 +784,8 @@
 </div>
 
 <!-- 設定・もんだいデータ（編集はこちら）-->
-<script src="config.js?v=19"></script>
+<script src="config.js?v=20"></script>
 <!-- ゲームロジック -->
-<script src="game.js?v=19"></script>
+<script src="game.js?v=20"></script>
 </body>
 </html>
