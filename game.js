@@ -61,14 +61,41 @@ function registerYokai(yk, levelIdx){
 }
 
 /* ---- 読み上げ（TTS・マイク不要） ---- */
-if('speechSynthesis' in window){ speechSynthesis.onvoiceschanged = ()=>{}; }
+let jaVoice = null;
+/* 日本語音声の中から いちばん自然なものを選ぶ。
+   端末によって持っている音声が違うので、上等なもの（Siri/拡張/プレミアム）を優先し、
+   機械っぽい compact 版を避ける。 */
+function pickVoice(){
+  if(!('speechSynthesis' in window)) return null;
+  const ja = speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith('ja'));
+  if(!ja.length) return null;
+  const score = v => {
+    const n = (v.name || '').toLowerCase();
+    let s = 0;
+    if(/google/.test(n)) s += 100;                        // Google 日本語がいちばん自然（最優先）
+    if(/siri/.test(n)) s += 60;                           // Siri音声も自然
+    if(/enhanced|premium|neural|拡張|高品質/.test(n)) s += 40;
+    if(/o-?ren|otoya|hattori|kyoko/.test(n)) s += 10;    // 既知の良い声
+    if(/compact|eloquence/.test(n)) s -= 30;             // 機械っぽいので下げる
+    if(!v.localService) s += 5;                           // ネット音声は自然なことが多い
+    return s;
+  };
+  ja.sort((a, b) => score(b) - score(a));
+  return ja[0];
+}
+if('speechSynthesis' in window){
+  jaVoice = pickVoice();
+  speechSynthesis.onvoiceschanged = () => { jaVoice = pickVoice(); };
+}
 function speak(text){
   if(!CONFIG.speakPrompt || !('speechSynthesis' in window)) return;
   try{
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'ja-JP'; u.rate = CONFIG.rate;
-    const v = speechSynthesis.getVoices().find(v => v.lang && v.lang.startsWith('ja'));
+    u.lang = 'ja-JP';
+    u.rate = CONFIG.rate;
+    u.pitch = (CONFIG.pitch != null) ? CONFIG.pitch : 1;
+    const v = jaVoice || pickVoice();
     if(v) u.voice = v;
     speechSynthesis.speak(u);
   }catch(e){}
@@ -187,7 +214,7 @@ function nextQuestion(){
   if(state.queue.length === 0) newQueue();
   const item = state.current = state.queue.shift();
 
-  $('pic').textContent = item.p || '';
+  $('pic').textContent = CONFIG.showPromptPic ? (item.p || '') : '';
   $('question').textContent = CONFIG.showPromptText ? ('「'+item.t+'」は どれだ〜！') : 'きいて どれだ〜！';
   buildChoices(item);
   speak(item.t);
