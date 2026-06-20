@@ -139,6 +139,28 @@
   .yokai-choice:active { transform: scale(.94); border-color: var(--gold); background: rgba(255,210,63,.18); }
   .yokai-choice:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
 
+  /* ステージ（たたかう ばしょ）えらび */
+  #stageSelect {
+    justify-content: flex-start; gap: 14px; overflow-y: auto;
+    background: url('images/yokai_select_bg.png') center / cover no-repeat, var(--night-1);
+  }
+  .stage-title {
+    margin-top: 8px; font-size: clamp(22px, 6vw, 30px); font-weight: 900; color: var(--paper);
+    -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; text-shadow: 0 4px 0 rgba(0,0,0,.4);
+  }
+  .stage-grid {
+    width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    align-content: start; padding: 4px 2px 12px;
+  }
+  .stage-choice {
+    border: 3px solid rgba(255,255,255,.5); border-radius: 16px; cursor: pointer; padding: 0;
+    aspect-ratio: 16 / 10; background-size: cover; background-position: center;
+    box-shadow: 0 5px 0 rgba(0,0,0,.35);
+    transition: transform .1s ease, border-color .1s ease;
+  }
+  .stage-choice:active { transform: scale(.95); border-color: var(--gold); }
+  .stage-choice:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
+
   /* battle */
   #battle { justify-content: flex-start; padding-top: 12px; gap: 10px; }
 
@@ -159,19 +181,33 @@
     border-radius: 50%;
     background: radial-gradient(ellipse at 50% 50%, rgba(0,0,0,.40), rgba(0,0,0,0) 72%);
   }
-  .enemy-plat { width: 44%; height: 40px; top: 33%; right: 5%; }
-  .hero-plat  { width: 54%; height: 52px; bottom: 5%; left: 2%; }
+  .enemy-plat { width: 44%; height: 44px; bottom: 6%; right: 3%; }
+  .hero-plat  { width: 50%; height: 52px; bottom: 5%; left: 2%; }
 
   .mon {
     position: absolute; line-height: 1;
     filter: drop-shadow(0 6px 6px rgba(0,0,0,.4));
     transition: transform .12s ease;
   }
-  .enemy-mon { top: 5%; right: 9%; font-size: clamp(78px, 23vw, 124px); }
-  .hero-mon  { bottom: 7%; left: 5%; font-size: clamp(100px, 30vw, 152px); }
+  .enemy-mon { bottom: 10%; right: 3%; font-size: clamp(104px, 33vw, 170px); }
+  .hero-mon  { bottom: 8%; left: 2%; font-size: clamp(110px, 35vw, 182px); }
+
+  /* こうげきどうぐを ためている あいだ ヒーローが ひかる */
+  .mon.charged { animation: chargePulse .7s ease-in-out infinite alternate; }
+  @keyframes chargePulse {
+    from { filter: drop-shadow(0 6px 6px rgba(0,0,0,.4)); }
+    to   { filter: drop-shadow(0 0 16px #ffd23f) drop-shadow(0 0 28px #ff8a3f) drop-shadow(0 6px 6px rgba(0,0,0,.4)); }
+  }
+  /* ガードどうぐを ためている あいだ ヒーローが あおく ひかる */
+  .mon.guarding { animation: guardPulse .7s ease-in-out infinite alternate; }
+  @keyframes guardPulse {
+    from { filter: drop-shadow(0 6px 6px rgba(0,0,0,.4)); }
+    to   { filter: drop-shadow(0 0 16px #58c8ff) drop-shadow(0 0 28px #2f7bff) drop-shadow(0 6px 6px rgba(0,0,0,.4)); }
+  }
 
   .mon.hit { animation: shake .4s; }
-  .mon.attack { animation: lunge .35s ease; }
+  .hero-mon.attack  { animation: lungeR .35s ease; }
+  .enemy-mon.attack { animation: lungeL .35s ease; }
   @keyframes shake {
     0%,100% { transform: translateX(0) rotate(0); }
     20% { transform: translateX(-12px) rotate(-6deg); }
@@ -179,9 +215,26 @@
     60% { transform: translateX(-8px) rotate(-4deg); }
     80% { transform: translateX(8px) rotate(4deg); }
   }
-  @keyframes lunge {
+  @keyframes lungeR {
     0%,100% { transform: translate(0,0); }
-    40% { transform: translate(40px,-28px) scale(1.08); }
+    40% { transform: translate(44px,-10px) scale(1.08); }
+  }
+  @keyframes lungeL {
+    0%,100% { transform: translate(0,0); }
+    40% { transform: translate(-44px,-10px) scale(1.08); }
+  }
+  /* 妖怪がたおれる演出（約3秒） */
+  .mon.faint {
+    animation: faint 2.8s cubic-bezier(.5,0,.7,1) forwards;
+    transform-origin: 50% 100%;
+  }
+  @keyframes faint {
+    0%   { transform: translate(0,0) rotate(0); opacity: 1; filter: drop-shadow(0 6px 6px rgba(0,0,0,.4)); }
+    10%  { transform: translate(0,0) rotate(-8deg); }
+    20%  { transform: translate(0,0) rotate(6deg); }
+    30%  { transform: translate(0,0) rotate(-6deg); }
+    45%  { transform: translate(0,0) rotate(4deg) scale(1); opacity: 1; }
+    100% { transform: translate(10px,40px) rotate(92deg) scale(.85); opacity: 0; filter: grayscale(1) brightness(.6) drop-shadow(0 0 0 transparent); }
   }
 
   /* なまえ＋HP の枠（ポケモン風） */
@@ -191,10 +244,11 @@
     border: 3px solid var(--ink); border-radius: 10px;
     padding: 5px 12px 7px;
     box-shadow: 3px 3px 0 rgba(0,0,0,.28);
-    min-width: 46%;
+    box-sizing: border-box;
+    width: 45%;
   }
-  .info.enemy { top: 8px; left: 8px; }
-  .info.hero  { bottom: 8px; right: 8px; }
+  .info.enemy { top: 8px; right: 8px; }
+  .info.hero  { top: 8px; left: 8px; }
   .info .row1 {
     display: flex; justify-content: space-between; align-items: baseline;
     font-weight: 800; font-size: clamp(12px, 3.6vw, 15px); gap: 8px; white-space: nowrap;
@@ -207,8 +261,9 @@
     border: 1px solid var(--ink); border-radius: 6px; overflow: hidden;
   }
   .hpbar > i { display: block; height: 100%; background: linear-gradient(#8dec5a, #3fae00); transition: width .3s ease; }
-  .info .hearts { font-size: 16px; letter-spacing: 1px; margin-top: 3px; min-height: 20px; }
-  .info .score { font-size: 12px; font-weight: 800; color: #c79b14; margin-top: 2px; }
+  .statline { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; min-height: 20px; }
+  .info .hearts { font-size: 16px; letter-spacing: 1px; }
+  .info .score { font-size: 13px; font-weight: 800; color: #c79b14; white-space: nowrap; }
 
   /* メッセージ枠（ポケモン下部のテキスト） */
   .msgbox {
@@ -246,6 +301,9 @@
     background: radial-gradient(circle at 38% 35%, #fff0a8, #ff8ae6 34%, #a12bd6 68%, rgba(161,43,214,0) 72%);
     box-shadow: 0 0 18px 7px rgba(190,100,255,.75);
   }
+  /* どうぐの 大きな波動拳 */
+  .projectile.big { width: 240px; height: 76px; }
+  .projectile.big::after { inset: -16px; filter: blur(14px); opacity: .5; }
   .burst {
     position: absolute; width: 12px; height: 12px; border-radius: 50%;
     transform: translate(-50%,-50%); pointer-events: none; z-index: 6;
@@ -297,8 +355,10 @@
 
   /* flash */
   .flash {
-    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    position: fixed; inset: 0; display: flex; align-items: flex-end; justify-content: center;
+    padding-bottom: 0;
     font-size: 26vw; font-weight: 900; pointer-events: none; opacity: 0; z-index: 50;
+    line-height: .8;
     white-space: nowrap;
   }
   .flash.show { animation: flashAnim .9s ease; }
@@ -313,6 +373,24 @@
     filter: drop-shadow(0 8px 18px rgba(0,0,0,.6));
   }
   .popup.show { animation: popAnim 1.6s ease; }
+
+  /* 選んだ どうぐの ポップアップ */
+  .item-pop {
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    pointer-events: none; opacity: 0; z-index: 56;
+  }
+  .item-pop img {
+    width: min(52vw, 260px); height: auto;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,.55));
+  }
+  .item-pop.show { animation: itemPopAnim 1s ease; }
+  @keyframes itemPopAnim {
+    0%   { opacity: 0; transform: scale(.3) rotate(-12deg); }
+    18%  { opacity: 1; transform: scale(1.18) rotate(6deg); }
+    32%  { transform: scale(1) rotate(0); }
+    78%  { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.04); }
+  }
   @keyframes popAnim {
     0% { opacity: 0; transform: scale(.4); }
     12% { opacity: 1; transform: scale(1.08); }
@@ -359,7 +437,80 @@
   .face-img { height: 1em; width: auto; vertical-align: middle; object-fit: contain; }
 
   /* battle: ホームにもどるボタン */
-  .battle-top { width: 100%; display: flex; justify-content: flex-start; }
+  .battle-top { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+  .dougu-btn {
+    height: 40px; padding: 0 18px; border-radius: 999px;
+    font-family: inherit; font-weight: 900; font-size: 17px; cursor: pointer; color: var(--ink);
+    background: linear-gradient(180deg, #ffe681, #ffc62e);
+    border: 3px solid var(--ink);
+    box-shadow: 0 4px 0 rgba(0,0,0,.32);
+    transition: transform .08s ease, box-shadow .08s ease;
+  }
+  .dougu-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.32); }
+  .dougu-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+  /* どうぐトレイ（バトル中につかう） */
+  #itemTray {
+    position: fixed; inset: 0; z-index: 60; display: none;
+    align-items: flex-end; justify-content: center;
+    background: rgba(13,8,30,.55);
+  }
+  #itemTray.show { display: flex; animation: trayFade .18s ease; }
+  @keyframes trayFade { from { opacity: 0; } to { opacity: 1; } }
+  .tray-panel {
+    width: 100%; max-width: 560px;
+    background: var(--paper); color: var(--ink);
+    border-top: 4px solid var(--ink); border-radius: 22px 22px 0 0;
+    padding: 14px 14px calc(18px + env(safe-area-inset-bottom));
+    box-shadow: 0 -6px 0 rgba(0,0,0,.25);
+    animation: traySlide .22s ease;
+  }
+  @keyframes traySlide { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .tray-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .tray-head .tt { font-weight: 900; font-size: 19px; }
+  .tray-close {
+    font-family: inherit; font-weight: 800; font-size: 15px; cursor: pointer; color: var(--ink);
+    background: #fff; border: 3px solid var(--ink); border-radius: 999px; padding: 6px 16px;
+    box-shadow: 0 3px 0 rgba(0,0,0,.28);
+  }
+  .tray-close:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.28); }
+  .tray-list {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+    max-height: 46vh; overflow-y: auto; align-content: start;
+  }
+  .tray-item {
+    position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 9px 6px; border-radius: 16px; border: 3px solid var(--ink); cursor: pointer;
+    font-family: inherit; font-weight: 800; box-shadow: 0 4px 0 rgba(0,0,0,.22);
+  }
+  .tray-item:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.22); }
+  .tray-item.eff-attack { background: #ffe0d4; }
+  .tray-item.eff-heal   { background: #d7ffe0; }
+  .tray-item.eff-guard  { background: #d4ecff; }
+  .tray-item.eff-hint   { background: #fff2bf; }
+  .ti-face { font-size: 38px; line-height: 1; }
+  .ti-nm { font-size: 12px; text-align: center; line-height: 1.1; }
+  .ti-desc {
+    font-size: 10px; font-weight: 700; text-align: center; line-height: 1.15;
+    color: var(--ink); opacity: .72; margin-top: 1px;
+  }
+  .ti-cnt {
+    position: absolute; top: -8px; right: -6px;
+    background: var(--ink); color: #fff; font-size: 13px; font-weight: 900;
+    border-radius: 999px; padding: 1px 8px; border: 2px solid #fff;
+  }
+  .tray-empty { grid-column: 1 / -1; padding: 28px 10px; text-align: center; font-weight: 800; line-height: 1.6; opacity: .85; }
+
+  /* ヒント：まちがいの選択肢が2つ消える */
+  .choice.removed {
+    pointer-events: none;
+    animation: choicePuff .3s ease forwards;
+  }
+  @keyframes choicePuff {
+    0%   { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(.6); visibility: hidden; }
+  }
+
   .home-btn {
     width: 40px; height: 40px; border-radius: 50%;
     font-size: 20px; line-height: 1; cursor: pointer; color: #fff;
@@ -392,7 +543,9 @@
     width: min(28vw, 140px); flex-direction: column; gap: 4px;
     font-size: min(22vw, 92px); padding: 8px 6px; border-radius: 18px; max-width: none;
   }
+  .item-row.all .item-choice .ic-text { align-items: center; }
   .item-row.all .item-choice .ic-nm { font-size: 13px; }
+  .item-row.all .item-choice .ic-desc { font-size: 10px; text-align: center; }
 
   /* クリア画面の成績パネル */
   .clear-stats {
@@ -416,7 +569,14 @@
     box-shadow: 0 6px 0 #b9add9, 0 8px 14px rgba(0,0,0,.3);
     transition: transform .08s ease;
   }
+  .item-choice .ic-text { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
   .item-choice .ic-nm { font-size: clamp(20px, 5.5vw, 28px); font-weight: 800; line-height: 1.2; }
+  .item-choice .ic-desc { font-size: clamp(11px, 3vw, 14px); font-weight: 700; line-height: 1.15; opacity: .68; }
+  /* カテゴリで うすく いろづけ */
+  .item-choice.eff-attack { background: linear-gradient(180deg, #ffffff, #ffe4d9); }
+  .item-choice.eff-heal   { background: linear-gradient(180deg, #ffffff, #dcffe5); }
+  .item-choice.eff-guard  { background: linear-gradient(180deg, #ffffff, #dcefff); }
+  .item-choice.eff-hint   { background: linear-gradient(180deg, #ffffff, #fff4cf); }
   .item-choice:active { transform: translateY(5px) scale(.98); box-shadow: 0 1px 0 #b9add9; }
   .item-choice:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
 
@@ -500,10 +660,17 @@
     <div class="yokai-row" id="yokaiChoices"></div>
   </section>
 
+  <!-- STAGE SELECT（たたかう ばしょを えらぶ） -->
+  <section id="stageSelect" class="screen">
+    <div class="stage-title">⚔️ どこで たたかう？</div>
+    <div class="stage-grid" id="stageChoices"></div>
+  </section>
+
   <!-- BATTLE -->
   <section id="battle" class="screen">
     <div class="battle-top">
       <button class="home-btn" id="homeBtn" aria-label="ほーむにもどる">🏠</button>
+      <button class="dougu-btn" id="douguBtn">🎒 どうぐ</button>
     </div>
     <div class="field">
       <div class="info enemy">
@@ -517,8 +684,10 @@
       <div class="mon hero-mon" id="heroMon">🦸</div>
       <div class="info hero">
         <div class="row1"><span id="heroName">ひーろー</span><span class="lv">Lv <span id="heroLv">1</span></span></div>
-        <div class="hearts" id="hearts"></div>
-        <div class="score">⭐ <span id="score">0</span></div>
+        <div class="statline">
+          <div class="hearts" id="hearts"></div>
+          <div class="score">⭐ <span id="score">0</span></div>
+        </div>
       </div>
     </div>
 
@@ -575,6 +744,18 @@
 
   <div class="flash" id="flash"></div>
   <div class="popup" id="popup"><img id="popupImg" alt="" /></div>
+  <div class="item-pop" id="itemPop"><img id="itemPopImg" alt="" /></div>
+
+  <!-- どうぐトレイ（バトル中につかう）-->
+  <div id="itemTray">
+    <div class="tray-panel">
+      <div class="tray-head">
+        <span class="tt">🎒 どうぐを つかう</span>
+        <button class="tray-close" id="trayClose">とじる</button>
+      </div>
+      <div class="tray-list" id="itemTrayList"></div>
+    </div>
+  </div>
 
   <!-- テスト用（URLに #dev のときだけ表示） -->
   <div id="devbar" style="display:none">
@@ -584,8 +765,8 @@
 </div>
 
 <!-- 設定・もんだいデータ（編集はこちら）-->
-<script src="config.js?v=5"></script>
+<script src="config.js?v=13"></script>
 <!-- ゲームロジック -->
-<script src="game.js?v=5"></script>
+<script src="game.js?v=13"></script>
 </body>
 </html>

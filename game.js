@@ -7,6 +7,11 @@ const state = {
   hero: null, hearts: CONFIG.startHearts, score: 0,
   levelIdx: 0, queue: [], current: null,
   yokaiIdx: 0, yokaiHp: CONFIG.yokaiHp, busy: false,
+  hintReady: false,   // ヒントどうぐ使用中：つぎの こたえで まちがいを2つ消す
+  armedAtkDmg: 0,     // こうげきどうぐで ためた追加ダメージ（つぎの せいかいで 発動）
+  guardArmed: false,  // ガードどうぐ使用中：つぎに まちがえても ハートが へらない
+  pendingYokai: null, // ステージえらび中の あいて妖怪
+  battleBg: null,     // えらんだ たたかう ばしょ（背景）
   session: 0   // バトルを開始/中断するたびに +1。古いタイマーを無効化するために使う
 };
 
@@ -90,6 +95,11 @@ function startGame(){
   state.session++;
   state.hearts = CONFIG.startHearts; state.score = 0;
   state.levelIdx = 0; state.yokaiIdx = 0;
+  state.hintReady = false;
+  state.armedAtkDmg = 0;
+  state.guardArmed = false;
+  $('heroMon').classList.remove('charged', 'guarding');
+  closeItemTray();
   renderTop();
   startLevel();
 }
@@ -118,7 +128,25 @@ function openYokaiSelect(){
   show('yokaiSelect');
 }
 function chooseYokai(yk){
-  spawnYokai(yk);
+  state.pendingYokai = yk;     // 妖怪を決めて、つぎは ステージえらびへ
+  openStageSelect();
+}
+/* たたかう ばしょ（背景）を えらぶ */
+function openStageSelect(){
+  const box = $('stageChoices'); box.innerHTML = '';
+  if(typeof BATTLE_BGS === 'undefined' || !BATTLE_BGS.length){ chooseStage(null); return; }
+  BATTLE_BGS.forEach(bg => {
+    const b = document.createElement('button');
+    b.className = 'stage-choice';
+    b.style.backgroundImage = "url('" + bg + "')";
+    b.onclick = () => chooseStage(bg);
+    box.appendChild(b);
+  });
+  show('stageSelect');
+}
+function chooseStage(bg){
+  state.battleBg = bg;
+  spawnYokai(state.pendingYokai);
   renderTop();
   show('battle');
   state.busy = false;
@@ -127,14 +155,18 @@ function chooseYokai(yk){
 /* えらばれた妖怪をバトルにセット */
 function spawnYokai(yk){
   state.yokai = yk;
-  // バトル背景をランダムに（緑のフィールドのかわり）
-  if(typeof BATTLE_BGS !== 'undefined' && BATTLE_BGS.length){
-    const bg = BATTLE_BGS[Math.floor(Math.random() * BATTLE_BGS.length)];
-    const field = document.querySelector('.field');
-    if(field) field.style.backgroundImage = "url('" + bg + "')";
+  // バトル背景：えらんだ ステージ（なければ ランダム）
+  const field = document.querySelector('.field');
+  if(field && typeof BATTLE_BGS !== 'undefined' && BATTLE_BGS.length){
+    const bg = state.battleBg || BATTLE_BGS[Math.floor(Math.random() * BATTLE_BGS.length)];
+    field.style.backgroundImage = "url('" + bg + "')";
   }
   state.yokaiHpMax = LEVELS[state.levelIdx].hp || CONFIG.yokaiHp;
   state.yokaiHp = state.yokaiHpMax;
+  $('yokai').classList.remove('faint', 'hit', 'attack');   // 前のたおれる演出をリセット
+  $('heroMon').classList.remove('charged', 'guarding');    // ためた こうげき/まもりは レベルごとにリセット
+  state.armedAtkDmg = 0;
+  state.guardArmed = false;
   setFace($('yokai'), state.yokai);
   $('enemyName').textContent = state.yokai.nm;
   $('yokaiHp').style.width = '100%';
@@ -175,6 +207,7 @@ function buildChoices(item){
     b.onclick = () => choose(b, p.t === item.t);
     box.appendChild(b);
   });
+  applyHint();   // ヒントどうぐ使用中なら こたえを ひからせる
 }
 
 function choose(btn, correct){
@@ -184,11 +217,14 @@ function choose(btn, correct){
 
   if(correct){
     btn.classList.add('correct');
-    state.score++; state.yokaiHp--;
+    const bonus = state.armedAtkDmg;          // どうぐで ためた こうげき
+    state.armedAtkDmg = 0;
+    $('heroMon').classList.remove('charged');
+    state.score++; state.yokaiHp -= (1 + bonus);
     renderTop();
     $('heroMon').classList.add('attack'); setTimeout(()=>$('heroMon').classList.remove('attack'),360);
-    const pct = (state.yokaiHp / state.yokaiHpMax * 100) + '%';
-    fireProjectile($('heroMon'), $('yokai'), 'hero', () => { $('yokaiHp').style.width = pct; });
+    const pct = (Math.max(0, state.yokaiHp) / state.yokaiHpMax * 100) + '%';
+    fireProjectile($('heroMon'), $('yokai'), 'hero', () => { $('yokaiHp').style.width = pct; }, bonus > 0);  // ためてたら 大きな波動拳
 
     if(state.yokaiHp <= 0){
       defeatYokai(sid);
@@ -199,13 +235,21 @@ function choose(btn, correct){
     }
   } else {
     btn.classList.add('wrong');
-    flash('❌', 'var(--heart)');
-    fireProjectile($('yokai'), $('heroMon'), 'enemy');
-    if(CONFIG.penaltyMode === 'score') state.score = Math.max(0, state.score - 1);
-    else state.hearts--;
-    renderTop();
+    const guarded = state.guardArmed;          // ガードどうぐで まもっていたか
+    state.guardArmed = false;
+    $('heroMon').classList.remove('guarding');
 
-    if(state.hearts <= 0 && CONFIG.penaltyMode === 'heart'){
+    if(guarded){
+      flash('🛡️', 'var(--good)');             // まもった！ ハートは へらない
+    } else {
+      flash('❌', 'var(--heart)');
+      fireProjectile($('yokai'), $('heroMon'), 'enemy');
+      if(CONFIG.penaltyMode === 'score') state.score = Math.max(0, state.score - 1);
+      else state.hearts--;
+      renderTop();
+    }
+
+    if(!guarded && state.hearts <= 0 && CONFIG.penaltyMode === 'heart'){
       setTimeout(()=>{ if(sid !== state.session) return; endGame(false); }, 700);
     } else {
       // 同じ問題のまま、もう一度えらべる（正解を光らせて教える）
@@ -285,6 +329,47 @@ function playBeam(kind){
   ng.gain.exponentialRampToValueAtTime(0.2, t + 0.04);
   ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
   noise.connect(lp).connect(ng).connect(ctx.destination);
+  noise.start(t); noise.stop(t + dur);
+}
+/* 大きな波動拳の「ゴゴゴゴ…ドーン」 */
+function playHadouken(){
+  const ctx = ensureAudio(); if(!ctx) return;
+  const t = ctx.currentTime, dur = 0.72;
+  // 1) 低音のうなり（sawtooth）＋ tremolo で「ゴゴゴ」
+  const osc = ctx.createOscillator(), g = ctx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(72, t);
+  osc.frequency.exponentialRampToValueAtTime(36, t + dur);
+  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass';
+  lp.frequency.setValueAtTime(520, t);
+  lp.frequency.exponentialRampToValueAtTime(150, t + dur);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.5, t + 0.06);
+  g.gain.setValueAtTime(0.5, t + dur - 0.16);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  // tremolo（ゴゴゴのリズム：だんだんゆっくり）
+  const lfo = ctx.createOscillator(), lg = ctx.createGain();
+  lfo.type = 'square';
+  lfo.frequency.setValueAtTime(20, t);
+  lfo.frequency.exponentialRampToValueAtTime(7, t + dur);
+  lg.gain.value = 0.22;
+  lfo.connect(lg).connect(g.gain);
+  osc.connect(lp).connect(g).connect(ctx.destination);
+  osc.start(t); osc.stop(t + dur);
+  lfo.start(t); lfo.stop(t + dur);
+  // 2) ノイズの ウォーッシュ（大きめ）
+  const nb = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate);
+  const nd = nb.getChannelData(0);
+  for(let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+  const noise = ctx.createBufferSource(); noise.buffer = nb;
+  const nlp = ctx.createBiquadFilter(); nlp.type = 'lowpass';
+  nlp.frequency.setValueAtTime(900, t);
+  nlp.frequency.exponentialRampToValueAtTime(120, t + dur);
+  const ng = ctx.createGain();
+  ng.gain.setValueAtTime(0.0001, t);
+  ng.gain.exponentialRampToValueAtTime(0.3, t + 0.1);
+  ng.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  noise.connect(nlp).connect(ng).connect(ctx.destination);
   noise.start(t); noise.stop(t + dur);
 }
 function playImpact(){
@@ -374,8 +459,8 @@ function impact(toEl){
     { duration: 360, easing: 'ease-out' }
   ).onfinish = () => burst.remove();
 }
-function fireProjectile(fromEl, toEl, kind, onImpact){
-  playBeam(kind);
+function fireProjectile(fromEl, toEl, kind, onImpact, big){
+  if(big) playHadouken(); else playBeam(kind);
   const done = () => { impact(toEl); if(onImpact) onImpact(); };
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(reduce){ done(); return; }
@@ -385,28 +470,29 @@ function fireProjectile(fromEl, toEl, kind, onImpact){
   const s = pointIn(field, fromEl, ox, 0.34);
   const e = pointIn(field, toEl, 0.5, 0.42);    // 着弾は相手の体の少し上
   const p = document.createElement('div');
-  p.className = 'projectile ' + kind;
+  p.className = 'projectile ' + kind + (big ? ' big' : '');
   p.style.left = s.x + 'px'; p.style.top = s.y + 'px';
   // 攻撃者（ヒーロー/妖怪）の色にビームを合わせる
   const col = kind === 'enemy' ? (state.yokai && state.yokai.col) : (state.hero && state.hero.col);
   if(col){
     p.style.background = `radial-gradient(ellipse at 72% 50%, #fff, ${col} 44%, ${col}00 78%)`;
-    p.style.boxShadow = `0 0 26px 10px ${col}c0`;
+    p.style.boxShadow = big ? `0 0 60px 26px ${col}d0` : `0 0 26px 10px ${col}c0`;
   }
   field.appendChild(p);
   const dx = e.x - s.x, dy = e.y - s.y;
   const ang = Math.atan2(dy, dx) * 180 / Math.PI;   // ビームを進行方向へ向ける
   const tx = `calc(-50% ${dx>=0?'+':'-'} ${Math.abs(dx)}px)`;
   const ty = `calc(-50% ${dy>=0?'+':'-'} ${Math.abs(dy)}px)`;
+  const endScale = big ? 1.25 : 1;
   const anim = p.animate(
-    [{ transform:`translate(-50%,-50%) rotate(${ang}deg) scale(.5)`, opacity:.6 },
-     { transform:`translate(${tx}, ${ty}) rotate(${ang}deg) scale(1)`, opacity:1 }],
-    { duration: 420, easing: 'cubic-bezier(.45,0,.75,1)' }
+    [{ transform:`translate(-50%,-50%) rotate(${ang}deg) scale(${big?.7:.5})`, opacity:.6 },
+     { transform:`translate(${tx}, ${ty}) rotate(${ang}deg) scale(${endScale})`, opacity:1 }],
+    { duration: big ? 560 : 420, easing: 'cubic-bezier(.45,0,.75,1)' }
   );
   anim.onfinish = () => { p.remove(); done(); };
 }
 function flash(symbol, color){
-  const f = $('flash'); f.textContent = symbol; f.style.color = color; f.style.fontSize = '26vw';
+  const f = $('flash'); f.textContent = symbol; f.style.color = color; f.style.fontSize = '';
   f.classList.remove('show'); void f.offsetWidth; f.classList.add('show');
 }
 function flashText(txt, color){
@@ -425,9 +511,16 @@ function itemById(id){ return ITEMS.find(x => x.id === id); }
 function defeatYokai(sid){
   registerYokai(state.yokai, state.levelIdx);              // 図鑑に登録
   const wasLast = state.levelIdx >= LEVELS.length - 1;
-  flashImage('images/defeat_popup.png');                   // 「やっつけた」演出カード（1.6秒）
-  playFanfare();                                           // パンパカパーン！（毎回のクリアで）
-  setTimeout(()=>{ if(sid !== state.session) return; openItemPick(wasLast ? 'final' : 'level'); }, 1600);
+  // まず妖怪がたおれる演出（約3秒）→ そのあとに「やっつけた」ポップアップ
+  const yk = $('yokai');
+  yk.classList.remove('attack', 'hit');
+  yk.classList.add('faint');
+  setTimeout(()=>{
+    if(sid !== state.session) return;
+    flashImage('images/defeat_popup.png');                 // 「やっつけた」演出カード（1.6秒）
+    playFanfare();                                         // パンパカパーン！（毎回のクリアで）
+    setTimeout(()=>{ if(sid !== state.session) return; openItemPick(wasLast ? 'final' : 'level'); }, 1600);
+  }, 3000);
 }
 function openItemPick(mode){
   const isFinal = (mode === 'final');   // 最後だけ全25種から「選び放題」、通常は3こからランダム
@@ -438,8 +531,12 @@ function openItemPick(mode){
   box.innerHTML = '';
   list.forEach(it => {
     const b = document.createElement('button');
-    b.className = 'item-choice';
-    b.innerHTML = faceHTML(it) + '<span class="ic-nm">'+it.nm+'</span>';
+    b.className = 'item-choice eff-' + it.effect;
+    b.innerHTML = faceHTML(it) +
+      '<span class="ic-text">' +
+        '<span class="ic-nm">'+it.nm+'</span>' +
+        '<span class="ic-desc">' + (EFFECT_DESC[it.effect] || '') + '</span>' +
+      '</span>';
     b.onclick = () => pickItem(it);
     box.appendChild(b);
   });
@@ -501,10 +598,103 @@ function buildItems(){
   });
 }
 
+/* ---- どうぐを バトルでつかう ---- */
+function ownedItemCounts(){
+  const counts = {};
+  progress.items.forEach(id => { counts[id] = (counts[id] || 0) + 1; });
+  return counts;
+}
+function openItemTray(){
+  if(!$('battle').classList.contains('active')) return;   // バトル中だけ
+  buildItemTray();
+  $('itemTray').classList.add('show');
+}
+function closeItemTray(){ $('itemTray').classList.remove('show'); }
+/* カテゴリごとの せつめい（トレイに表示） */
+const EFFECT_DESC = {
+  attack: 'こうげきが つよくなる',
+  heal:   '❤️が かいふくする',
+  guard:  'まちがえても ❤️が へらない',
+  hint:   'ひんとが もらえる'
+};
+function buildItemTray(){
+  const box = $('itemTrayList'); box.innerHTML = '';
+  const counts = ownedItemCounts();
+  const owned = ITEMS.filter(it => counts[it.id]);
+  if(owned.length === 0){
+    box.innerHTML = '<div class="tray-empty">まだ どうぐが ないよ。<br>ばとるで かって あつめよう！</div>';
+    return;
+  }
+  owned.forEach(it => {
+    const b = document.createElement('button');
+    b.className = 'tray-item eff-' + it.effect;
+    b.innerHTML =
+      '<span class="ti-cnt">×' + counts[it.id] + '</span>' +
+      '<span class="ti-face">' + faceHTML(it) + '</span>' +
+      '<span class="ti-nm">' + it.nm + '</span>' +
+      '<span class="ti-desc">' + (EFFECT_DESC[it.effect] || '') + '</span>';
+    b.onclick = () => useItem(it);
+    box.appendChild(b);
+  });
+}
+function consumeItem(id){
+  const i = progress.items.indexOf(id);
+  if(i >= 0) progress.items.splice(i, 1);
+  saveProgress();
+}
+/* 選んだ どうぐを ポップアップ表示 */
+function popItem(it){
+  const p = $('itemPop');
+  $('itemPopImg').src = it.img ? imgSrc(it) : '';
+  p.classList.remove('show'); void p.offsetWidth; p.classList.add('show');
+}
+function useItem(it){
+  if(!$('battle').classList.contains('active')) return;
+  if(it.effect === 'attack'){
+    if(state.yokaiHp <= 0) return;          // もう たおれている
+    consumeItem(it.id);
+    state.armedAtkDmg += 2;                  // ためる：つぎの せいかいで 大きな波動拳！
+    $('heroMon').classList.add('charged');
+    closeItemTray();
+    popItem(it);                             // 「じゅんびOK！」：選んだ どうぐが ポップアップ
+  } else if(it.effect === 'heal'){
+    if(state.hearts >= CONFIG.startHearts) return;  // 満タンなら使わない（トレイはそのまま）
+    consumeItem(it.id);
+    state.hearts = Math.min(CONFIG.startHearts, state.hearts + 1);
+    renderTop();
+    closeItemTray();
+    popItem(it);
+  } else if(it.effect === 'guard'){
+    if(state.guardArmed) return;             // すでに ガード中なら むだづかいしない
+    consumeItem(it.id);
+    state.guardArmed = true;                 // ためる：つぎに まちがえても ハートが へらない
+    $('heroMon').classList.add('guarding');
+    closeItemTray();
+    popItem(it);
+  } else if(it.effect === 'hint'){
+    consumeItem(it.id);
+    state.hintReady = true;
+    closeItemTray();
+    popItem(it);
+    applyHint();                            // いま出ている問題にも すぐ反映
+  }
+  buildItemTray();                          // 残りのトレイ表示を更新（次に開いた時のため）
+}
+function applyHint(){
+  if(!state.hintReady || !state.current) return;
+  const cs = Array.from(document.querySelectorAll('#choices .choice'));
+  if(!cs.length) return;
+  // まちがいの 選択肢を 2つ 消して えらびやすくする
+  const wrongs = shuffle(cs.filter(c => c.textContent !== state.current.t && !c.classList.contains('removed')));
+  wrongs.slice(0, 2).forEach(c => { c.classList.add('removed'); c.disabled = true; });
+  state.hintReady = false;                  // 1問ぶんで つかいきり
+}
+
 /* ---- バトル中断 → ホームへ ---- */
 function goHome(){
   state.session++;             // 走っているタイマーを無効化（タイトルを上書きさせない）
   state.busy = true;
+  closeItemTray();
   if('speechSynthesis' in window){ try{ speechSynthesis.cancel(); }catch(e){} }
   show('title');
 }
@@ -516,6 +706,9 @@ $('listenBtn').onclick = () => { if(state.current) speak(state.current.t); };
 $('retryBtn').onclick = startGame;
 $('againBtn').onclick = () => show('title');
 $('homeBtn').onclick = goHome;
+$('douguBtn').onclick = openItemTray;
+$('trayClose').onclick = closeItemTray;
+$('itemTray').onclick = (e) => { if(e.target === $('itemTray')) closeItemTray(); };  // 背景タップで閉じる
 $('zukanBtn').onclick = () => { buildZukan(); show('zukan'); };
 $('itemsBtn').onclick  = () => { buildItems(); show('items'); };
 $('zukanBack').onclick = () => show('title');

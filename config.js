@@ -129,31 +129,36 @@ const BATTLE_BGS = [
 ];
 
 /* レベルクリアで1こもらえる どうぐ（3こから1こえらぶ）。
-   ※いまは「あつめて ながめる」だけ。将来バトルで使えるようにする予定（effect は予約）。 */
+   バトル中「どうぐ」ボタンから タップで つかえる（つかうと1こ へる）。
+   effect:
+     'attack' = ためて つぎの せいかいで 大きな波動拳（ようかいHP-2ぶん）
+     'heal'   = ハート+1
+     'guard'  = ためておくと つぎに まちがえても ハートが へらない（1回ぶん）
+     'hint'   = まちがいの こたえを 2つ けす */
 const ITEMS = [
-  {id:'fire_sword',      face:'⚔️', nm:'ほのおのけん',      img:'images/01_fire_sword_512.webp'},
-  {id:'light_blaster',   face:'🔫', nm:'びーむがん',        img:'images/02_light_blaster_512.webp'},
-  {id:'guard_shield',    face:'🛡️', nm:'まもりのたて',      img:'images/03_guard_shield_512.webp'},
-  {id:'energy_drink',    face:'🥤', nm:'げんきどりんく',    img:'images/04_energy_drink_512.webp'},
-  {id:'speed_boots',     face:'👟', nm:'はやあしのくつ',    img:'images/05_speed_boots_512.webp'},
-  {id:'power_glove',     face:'🥊', nm:'ちからのてぶくろ',  img:'images/06_power_glove_512.webp'},
-  {id:'lightning_bomb',  face:'💣', nm:'かみなりばくだん',  img:'images/07_lightning_bomb_512.webp'},
-  {id:'shadow_shuriken', face:'🌀', nm:'かげのしゅりけん',  img:'images/08_shadow_shuriken_512.webp'},
-  {id:'ninja_mask',      face:'🥷', nm:'にんじゃのめん',    img:'images/09_ninja_mask_512.webp'},
-  {id:'fox_mask',        face:'🦊', nm:'きつねのめん',      img:'images/10_fox_mask_512.webp'},
-  {id:'oni_mask',        face:'👹', nm:'おにのめん',        img:'images/11_oni_mask_512.webp'},
-  {id:'tengu_mask',      face:'👺', nm:'てんぐのめん',      img:'images/12_tengu_mask_512.webp'},
-  {id:'energy_onigiri',  face:'🍙', nm:'げんきおにぎり',    img:'images/13_energy_onigiri_512.webp'},
-  {id:'healing_dango',   face:'🍡', nm:'かいふくだんご',    img:'images/14_healing_dango_512.webp'},
-  {id:'healing_bun',     face:'🥟', nm:'かいふくまんじゅう',img:'images/15_healing_bun_512.webp'},
-  {id:'orange_potion',   face:'🧪', nm:'だいだいのくすり',  img:'images/16_orange_healing_potion_512.webp'},
-  {id:'blue_drink',      face:'🧋', nm:'あおいのみもの',    img:'images/17_blue_recovery_drink_512.webp'},
-  {id:'revival_charm',   face:'🪬', nm:'ふっかつのおまもり',img:'images/18_revival_charm_512.webp'},
-  {id:'hint_glasses',    face:'👓', nm:'ひんとめがね',      img:'images/19_hint_glasses_512.webp'},
-  {id:'helper_pencil',   face:'✏️', nm:'おたすけえんぴつ',  img:'images/20_helper_pencil_512.webp'},
-  {id:'retry_ticket',    face:'🎟️', nm:'やりなおしけん',    img:'images/21_retry_ticket_512.webp'},
-  {id:'slow_clock',      face:'⏰', nm:'ゆっくりどけい',    img:'images/22_slow_clock_512.webp'},
-  {id:'bazooka',         face:'🚀', nm:'ばずーか',          img:'images/23_bazooka_512.webp'},
-  {id:'bow_and_arrow',   face:'🏹', nm:'ゆみや',            img:'images/24_bow_and_arrow_512.webp'},
-  {id:'nunchaku',        face:'🥢', nm:'ぬんちゃく',        img:'images/25_nunchaku_512.webp'}
+  {id:'fire_sword',      face:'⚔️', nm:'ほのおのけん',      img:'images/01_fire_sword_512.webp',        effect:'attack'},
+  {id:'light_blaster',   face:'🔫', nm:'びーむがん',        img:'images/02_light_blaster_512.webp',      effect:'attack'},
+  {id:'guard_shield',    face:'🛡️', nm:'まもりのたて',      img:'images/03_guard_shield_512.webp',       effect:'guard'},
+  {id:'energy_drink',    face:'🥤', nm:'げんきどりんく',    img:'images/04_energy_drink_512.webp',       effect:'heal'},
+  {id:'speed_boots',     face:'👟', nm:'はやあしのくつ',    img:'images/05_speed_boots_512.webp',        effect:'hint'},
+  {id:'power_glove',     face:'🥊', nm:'ちからのてぶくろ',  img:'images/06_power_glove_512.webp',        effect:'attack'},
+  {id:'lightning_bomb',  face:'💣', nm:'かみなりばくだん',  img:'images/07_lightning_bomb_512.webp',     effect:'attack'},
+  {id:'shadow_shuriken', face:'🌀', nm:'かげのしゅりけん',  img:'images/08_shadow_shuriken_512.webp',    effect:'attack'},
+  {id:'ninja_mask',      face:'🥷', nm:'にんじゃのめん',    img:'images/09_ninja_mask_512.webp',         effect:'guard'},
+  {id:'fox_mask',        face:'🦊', nm:'きつねのめん',      img:'images/10_fox_mask_512.webp',           effect:'guard'},
+  {id:'oni_mask',        face:'👹', nm:'おにのめん',        img:'images/11_oni_mask_512.webp',           effect:'guard'},
+  {id:'tengu_mask',      face:'👺', nm:'てんぐのめん',      img:'images/12_tengu_mask_512.webp',         effect:'guard'},
+  {id:'energy_onigiri',  face:'🍙', nm:'げんきおにぎり',    img:'images/13_energy_onigiri_512.webp',     effect:'heal'},
+  {id:'healing_dango',   face:'🍡', nm:'かいふくだんご',    img:'images/14_healing_dango_512.webp',      effect:'heal'},
+  {id:'healing_bun',     face:'🥟', nm:'かいふくまんじゅう',img:'images/15_healing_bun_512.webp',        effect:'heal'},
+  {id:'orange_potion',   face:'🧪', nm:'だいだいのくすり',  img:'images/16_orange_healing_potion_512.webp',effect:'heal'},
+  {id:'blue_drink',      face:'🧋', nm:'あおいのみもの',    img:'images/17_blue_recovery_drink_512.webp', effect:'heal'},
+  {id:'revival_charm',   face:'🪬', nm:'ふっかつのおまもり',img:'images/18_revival_charm_512.webp',      effect:'heal'},
+  {id:'hint_glasses',    face:'👓', nm:'ひんとめがね',      img:'images/19_hint_glasses_512.webp',       effect:'hint'},
+  {id:'helper_pencil',   face:'✏️', nm:'おたすけえんぴつ',  img:'images/20_helper_pencil_512.webp',      effect:'hint'},
+  {id:'retry_ticket',    face:'🎟️', nm:'やりなおしけん',    img:'images/21_retry_ticket_512.webp',       effect:'heal'},
+  {id:'slow_clock',      face:'⏰', nm:'ゆっくりどけい',    img:'images/22_slow_clock_512.webp',         effect:'hint'},
+  {id:'bazooka',         face:'🚀', nm:'ばずーか',          img:'images/23_bazooka_512.webp',            effect:'attack'},
+  {id:'bow_and_arrow',   face:'🏹', nm:'ゆみや',            img:'images/24_bow_and_arrow_512.webp',      effect:'attack'},
+  {id:'nunchaku',        face:'🥢', nm:'ぬんちゃく',        img:'images/25_nunchaku_512.webp',           effect:'attack'}
 ];
