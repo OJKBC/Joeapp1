@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>ひらがなばとる！</title>
+<style>
+  :root {
+    --night-1: #221551;
+    --night-2: #4a2391;
+    --hero: #34c2e3;
+    --hero-dark: #1b8fb0;
+    --yokai: #b14aed;
+    --yokai-dark: #7a26a8;
+    --gold: #ffd23f;
+    --heart: #ff5d73;
+    --good: #46e07a;
+    --paper: #fffdf5;
+    --ink: #2a2150;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+
+  body {
+    font-family: "Hiragino Maru Gothic ProN", "ヒラギノ丸ゴ ProN",
+                 "Rounded Mplus 1c", "Quicksand", "Comic Sans MS", system-ui, sans-serif;
+    color: var(--paper);
+    background: radial-gradient(120% 90% at 50% 0%, var(--night-2) 0%, var(--night-1) 60%, #160d33 100%);
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  #app {
+    height: 100dvh;
+    max-width: 560px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    /* iPhoneのノッチ/ホームバーに重ならないように */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .screen {
+    flex: 1;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    text-align: center;
+  }
+  .screen.active { display: flex; }
+
+  .btn {
+    font-family: inherit;
+    font-weight: 800;
+    border: none;
+    border-radius: 999px;
+    padding: 18px 34px;
+    font-size: 22px;
+    color: #fff;
+    background: linear-gradient(180deg, var(--hero) 0%, var(--hero-dark) 100%);
+    box-shadow: 0 6px 0 var(--hero-dark), 0 10px 18px rgba(0,0,0,.35);
+    cursor: pointer;
+    transition: transform .08s ease, box-shadow .08s ease;
+  }
+  .btn:active { transform: translateY(5px); box-shadow: 0 1px 0 var(--hero-dark), 0 4px 10px rgba(0,0,0,.3); }
+  .btn:focus-visible { outline: 4px solid #fff; outline-offset: 3px; }
+
+  /* title */
+  #title {
+    justify-content: flex-end; gap: 12px; overflow-y: auto;
+    padding-bottom: 26px;
+    background:
+      linear-gradient(to top, rgba(13,8,30,.80) 5%, rgba(13,8,30,.30) 24%, rgba(13,8,30,0) 46%),
+      url('images/home2.png') center / cover no-repeat;
+  }
+  .game-logo {
+    font-size: clamp(28px, 9vw, 48px);
+    font-weight: 900;
+    line-height: 1.05;
+    text-shadow: 0 4px 0 var(--yokai-dark), 0 8px 18px rgba(0,0,0,.5);
+    letter-spacing: 2px;
+  }
+  .game-logo .pop { color: var(--gold); }
+
+  /* hero select */
+  #select {
+    justify-content: flex-start; gap: 12px; overflow-y: auto;
+    background: url('images/hero_select_bg.png') center / cover no-repeat, var(--night-1);
+  }
+  .heads { font-size: 24px; font-weight: 800; }
+  .hs-title {
+    height: clamp(180px, 33vh, 345px); width: auto; max-width: 100%;
+    margin: 2px auto 0; filter: drop-shadow(0 4px 7px rgba(0,0,0,.5));
+  }
+  .hero-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%;
+    align-content: start; padding: 2px;
+  }
+  .hero-card {
+    background: transparent;
+    border: 3px solid transparent;
+    border-radius: 26px;
+    padding: 4px 4px 2px;
+    cursor: pointer;
+    min-width: 0;   /* グリッド列が画像の元サイズで広がって右に溢れるのを防ぐ */
+    display: flex; flex-direction: column; align-items: center;
+    transition: transform .1s ease, border-color .1s ease, background .1s ease;
+  }
+  .hero-card:active { transform: scale(.94); }
+  .hero-card.sel { border-color: var(--gold); background: rgba(255,210,63,.18); }
+  .hero-card .face { display: block; line-height: 1; width: 100%; }
+  /* ヒーロー画像（1行2体）。列幅より一回り小さめに */
+  .hero-card .face-img { width: 86%; height: auto; max-width: 290px; display: block; margin: 0 auto; }
+  .hero-card .nm { font-weight: 800; margin-top: 2px; font-size: clamp(20px, 5.5vw, 30px); }
+
+  /* yokai select（たたかう相手をえらぶ） */
+  #yokaiSelect {
+    justify-content: flex-start; gap: 16px; overflow-y: auto;
+    background: url('images/yokai_select_bg.png') center / cover no-repeat, var(--night-1);
+  }
+  /* れべる（画像）＋ 数字 */
+  .ys-level { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 4px; }
+  .ys-level-img { height: clamp(46px, 13vw, 68px); width: auto; }
+  .ys-level-num {
+    font-size: clamp(44px, 13vw, 68px); font-weight: 900; line-height: 1;
+    color: var(--gold); -webkit-text-stroke: 2.5px var(--ink);
+    paint-order: stroke fill; text-shadow: 0 4px 0 rgba(0,0,0,.45);
+  }
+  /* どの ようかいと たたかう？（画像バナー） */
+  .ys-title { width: min(94%, 480px); height: auto; filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
+  .yokai-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: stretch; width: 100%; }
+  .yokai-choice {
+    font-family: inherit; border: none; cursor: pointer; color: var(--paper);
+    width: min(29vw, 160px); border-radius: 22px; padding: 10px 6px;
+    font-size: min(26vw, 22vh, 150px);
+    background: transparent; border: 3px solid transparent;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    transition: transform .1s ease, border-color .1s ease, background .1s ease;
+  }
+  .yokai-choice .yc-nm { font-size: clamp(14px, 3.6vw, 19px); font-weight: 800; }
+  .yokai-choice:active { transform: scale(.94); border-color: var(--gold); background: rgba(255,210,63,.18); }
+  .yokai-choice:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
+
+  /* ステージ（たたかう ばしょ）えらび */
+  #stageSelect {
+    justify-content: flex-start; gap: 14px; overflow-y: auto;
+    background: url('images/yokai_select_bg.png') center / cover no-repeat, var(--night-1);
+  }
+  .stage-title {
+    margin-top: 8px; font-size: clamp(22px, 6vw, 30px); font-weight: 900; color: var(--paper);
+    -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; text-shadow: 0 4px 0 rgba(0,0,0,.4);
+  }
+  .stage-grid {
+    width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    align-content: start; padding: 4px 2px 12px;
+  }
+  .stage-choice {
+    border: 3px solid rgba(255,255,255,.5); border-radius: 16px; cursor: pointer; padding: 0;
+    aspect-ratio: 16 / 10; background-size: cover; background-position: center;
+    box-shadow: 0 5px 0 rgba(0,0,0,.35);
+    transition: transform .1s ease, border-color .1s ease;
+  }
+  .stage-choice:active { transform: scale(.95); border-color: var(--gold); }
+  .stage-choice:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
+
+  /* battle */
+  #battle { justify-content: flex-start; padding-top: 12px; gap: 10px; }
+
+  /* battle field (緑のフィールド) */
+  .field {
+    position: relative;
+    width: 100%;
+    height: 37vh; min-height: 214px; max-height: 330px;
+    border-radius: 18px;
+    background: #2a1a4a center / cover no-repeat;   /* 背景画像はJSでランダムにセット */
+    border: 3px solid var(--ink);
+    box-shadow: 0 6px 0 rgba(0,0,0,.3), inset 0 0 0 2px rgba(255,255,255,.18);
+    overflow: hidden;
+  }
+
+  .platform {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 50%, rgba(0,0,0,.40), rgba(0,0,0,0) 72%);
+  }
+  .enemy-plat { width: 44%; height: 44px; bottom: 6%; right: 3%; }
+  .hero-plat  { width: 50%; height: 52px; bottom: 5%; left: 2%; }
+
+  .mon {
+    position: absolute; line-height: 1;
+    filter: drop-shadow(0 6px 6px rgba(0,0,0,.4));
+    transition: transform .12s ease;
+  }
+  .enemy-mon { bottom: 10%; right: 3%; font-size: clamp(104px, 33vw, 170px); }
+  .hero-mon  { bottom: 8%; left: 2%; font-size: clamp(110px, 35vw, 182px); }
+
+  /* こうげきどうぐを ためている あいだ ヒーローが ひかる */
+  .mon.charged { animation: chargePulse .7s ease-in-out infinite alternate; }
+  @keyframes chargePulse {
+    from { filter: drop-shadow(0 6px 6px rgba(0,0,0,.4)); }
+    to   { filter: drop-shadow(0 0 16px #ffd23f) drop-shadow(0 0 28px #ff8a3f) drop-shadow(0 6px 6px rgba(0,0,0,.4)); }
+  }
+  /* ガードどうぐを ためている あいだ ヒーローが あおく ひかる */
+  .mon.guarding { animation: guardPulse .7s ease-in-out infinite alternate; }
+  @keyframes guardPulse {
+    from { filter: drop-shadow(0 6px 6px rgba(0,0,0,.4)); }
+    to   { filter: drop-shadow(0 0 16px #58c8ff) drop-shadow(0 0 28px #2f7bff) drop-shadow(0 6px 6px rgba(0,0,0,.4)); }
+  }
+
+  .mon.hit { animation: shake .4s; }
+  .hero-mon.attack  { animation: lungeR .35s ease; }
+  .enemy-mon.attack { animation: lungeL .35s ease; }
+  @keyframes shake {
+    0%,100% { transform: translateX(0) rotate(0); }
+    20% { transform: translateX(-12px) rotate(-6deg); }
+    40% { transform: translateX(12px) rotate(6deg); }
+    60% { transform: translateX(-8px) rotate(-4deg); }
+    80% { transform: translateX(8px) rotate(4deg); }
+  }
+  @keyframes lungeR {
+    0%,100% { transform: translate(0,0); }
+    40% { transform: translate(44px,-10px) scale(1.08); }
+  }
+  @keyframes lungeL {
+    0%,100% { transform: translate(0,0); }
+    40% { transform: translate(-44px,-10px) scale(1.08); }
+  }
+  /* 妖怪がたおれる演出（約3秒） */
+  .mon.faint {
+    animation: faint 2.8s cubic-bezier(.5,0,.7,1) forwards;
+    transform-origin: 50% 100%;
+  }
+  @keyframes faint {
+    0%   { transform: translate(0,0) rotate(0); opacity: 1; filter: drop-shadow(0 6px 6px rgba(0,0,0,.4)); }
+    10%  { transform: translate(0,0) rotate(-8deg); }
+    20%  { transform: translate(0,0) rotate(6deg); }
+    30%  { transform: translate(0,0) rotate(-6deg); }
+    45%  { transform: translate(0,0) rotate(4deg) scale(1); opacity: 1; }
+    100% { transform: translate(10px,40px) rotate(92deg) scale(.85); opacity: 0; filter: grayscale(1) brightness(.6) drop-shadow(0 0 0 transparent); }
+  }
+
+  /* なまえ＋HP の枠（ポケモン風） */
+  .info {
+    position: absolute;
+    background: #f7f3e0; color: var(--ink);
+    border: 3px solid var(--ink); border-radius: 10px;
+    padding: 5px 9px 7px;
+    box-shadow: 3px 3px 0 rgba(0,0,0,.28);
+    box-sizing: border-box;
+    width: 46%; max-width: 240px;
+  }
+  .info.enemy { top: 8px; right: 8px; }
+  .info.hero  { top: 8px; left: 8px; }
+  .info .row1 {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-weight: 800; font-size: clamp(12px, 3.6vw, 15px); gap: 6px; white-space: nowrap;
+  }
+  /* 名前が長くても箱からはみ出さない（…で省略） */
+  .info .row1 > span:first-child { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .info .lv { flex: none; font-size: clamp(10px, 3vw, 12px); }
+  .hpline { display: flex; align-items: center; gap: 5px; margin-top: 4px; }
+  .hpline .hp { font-size: 10px; font-weight: 900; color: #d98a00; font-style: italic; flex: none; }
+  .hpbar {
+    flex: 1; min-width: 0; height: 9px; background: #5a5048;
+    border: 1px solid var(--ink); border-radius: 6px; overflow: hidden;
+  }
+  .hpbar > i { display: block; height: 100%; background: linear-gradient(#8dec5a, #3fae00); transition: width .3s ease; }
+  .statline { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 4px; min-height: 20px; }
+  .info .hearts { font-size: clamp(12px, 4vw, 16px); letter-spacing: 0; min-width: 0; overflow: hidden; white-space: nowrap; }
+  .info .score { font-size: 13px; font-weight: 800; color: #c79b14; white-space: nowrap; flex: none; }
+
+  /* メッセージ枠（ポケモン下部のテキスト） */
+  .msgbox {
+    width: 100%;
+    background: var(--paper); color: var(--ink);
+    border: 3px solid var(--ink); border-radius: 14px;
+    box-shadow: 0 5px 0 rgba(0,0,0,.25);
+    padding: 12px 16px;
+    font-weight: 800; font-size: clamp(18px, 5.5vw, 24px);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .msgbox .pic { font-size: 28px; }
+  .msgbox #question { flex: 1; text-align: center; }
+  .listen-btn {
+    border: none; background: var(--gold); color: var(--ink);
+    border-radius: 999px; font-size: 20px; font-family: inherit; font-weight: 800;
+    padding: 4px 10px; cursor: pointer; box-shadow: 0 3px 0 #c79b14;
+  }
+  .listen-btn:active { transform: translateY(3px); }
+
+  /* 攻撃の弾（波動拳ふう）と着弾エフェクト */
+  .projectile {
+    position: absolute; width: 120px; height: 34px; border-radius: 50%;
+    pointer-events: none; z-index: 5; transform: translate(-50%,-50%);
+  }
+  .projectile::after {
+    content: ''; position: absolute; inset: -7px; border-radius: 50%;
+    background: inherit; opacity: .35; filter: blur(7px);
+  }
+  .projectile.hero {
+    background: radial-gradient(circle at 38% 35%, #ffffff, #8fe9ff 34%, #1f9bd6 68%, rgba(31,155,214,0) 72%);
+    box-shadow: 0 0 18px 7px rgba(90,200,255,.75);
+  }
+  .projectile.enemy {
+    background: radial-gradient(circle at 38% 35%, #fff0a8, #ff8ae6 34%, #a12bd6 68%, rgba(161,43,214,0) 72%);
+    box-shadow: 0 0 18px 7px rgba(190,100,255,.75);
+  }
+  /* どうぐの 大きな波動拳 */
+  .projectile.big { width: 240px; height: 76px; }
+  .projectile.big::after { inset: -16px; filter: blur(14px); opacity: .5; }
+  .burst {
+    position: absolute; width: 12px; height: 12px; border-radius: 50%;
+    transform: translate(-50%,-50%); pointer-events: none; z-index: 6;
+    background: radial-gradient(circle, #fff 0%, #ffd23f 45%, rgba(255,210,63,0) 70%);
+  }
+
+  /* ヒット時の画面シェイク */
+  #app.shake { animation: screenShake .34s ease; }
+  @keyframes screenShake {
+    0%,100% { transform: translate(0,0); }
+    12% { transform: translate(-7px, 4px); }
+    26% { transform: translate(8px, -5px); }
+    40% { transform: translate(-6px, -4px); }
+    55% { transform: translate(6px, 5px); }
+    70% { transform: translate(-4px, 2px); }
+    85% { transform: translate(3px, -2px); }
+  }
+
+  /* choices grid */
+  .choices {
+    width: 100%;
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    align-content: center;
+    padding-top: 6px;
+    min-height: 0;
+  }
+  .choice {
+    font-family: inherit; font-weight: 900;
+    border: none; border-radius: 22px;
+    background: linear-gradient(180deg, #ffffff, #ece6ff);
+    color: var(--ink);
+    cursor: pointer;
+    min-height: 78px;
+    padding: 10px 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(26px, 8vw, 44px);
+    letter-spacing: 2px;
+    box-shadow: 0 6px 0 #b9add9, 0 8px 14px rgba(0,0,0,.3);
+    transition: transform .08s ease;
+  }
+  .choice:active { transform: translateY(5px); box-shadow: 0 1px 0 #b9add9; }
+  .choice:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
+  .choice.correct { background: linear-gradient(180deg, #b6ffce, #46e07a); box-shadow: 0 6px 0 #1f9c4f; }
+  .choice.wrong { background: linear-gradient(180deg, #ffc4cf, #ff5d73); box-shadow: 0 6px 0 #c2384f; animation: shake .4s; }
+  .choice.dim { opacity: .35; }
+
+  /* flash */
+  .flash {
+    position: fixed; inset: 0; display: flex; align-items: flex-end; justify-content: center;
+    padding-bottom: 0;
+    font-size: 26vw; font-weight: 900; pointer-events: none; opacity: 0; z-index: 50;
+    line-height: .8;
+    white-space: nowrap;
+  }
+  .flash.show { animation: flashAnim .9s ease; }
+
+  /* 画像ポップアップ（やっつけた等の演出カード） */
+  .popup {
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    pointer-events: none; opacity: 0; z-index: 55;
+  }
+  .popup img {
+    max-width: min(98vw, 560px); max-height: 86vh; width: auto; height: auto;
+    filter: drop-shadow(0 8px 18px rgba(0,0,0,.6));
+  }
+  .popup.show { animation: popAnim 1.6s ease; }
+
+  /* 選んだ どうぐの ポップアップ */
+  .item-pop {
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    pointer-events: none; opacity: 0; z-index: 56;
+  }
+  .item-pop img {
+    width: min(52vw, 260px); height: auto;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,.55));
+  }
+  .item-pop.show { animation: itemPopAnim 1s ease; }
+  @keyframes itemPopAnim {
+    0%   { opacity: 0; transform: scale(.3) rotate(-12deg); }
+    18%  { opacity: 1; transform: scale(1.18) rotate(6deg); }
+    32%  { transform: scale(1) rotate(0); }
+    78%  { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.04); }
+  }
+  @keyframes popAnim {
+    0% { opacity: 0; transform: scale(.4); }
+    12% { opacity: 1; transform: scale(1.08); }
+    20% { transform: scale(1); }
+    82% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1); }
+  }
+  @keyframes flashAnim {
+    0% { opacity: 0; transform: scale(.4); }
+    25% { opacity: 1; transform: scale(1.1); }
+    70% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1); }
+  }
+
+  /* end screens */
+  #over { justify-content: center; gap: 22px; }
+  #cleared {
+    justify-content: flex-end; gap: 14px; padding-bottom: 28px;
+    background:
+      linear-gradient(to top, rgba(13,8,30,.65) 2%, rgba(13,8,30,0) 24%),
+      url('images/final_clear.png') center / cover no-repeat, var(--night-1);
+  }
+  .big-emoji { font-size: 96px; }
+  .end-title { font-size: 36px; font-weight: 900; }
+  .score-pill {
+    background: var(--gold); color: var(--ink);
+    border-radius: 999px; padding: 6px 18px; font-size: 22px; font-weight: 800;
+    box-shadow: 0 4px 0 #c79b14;
+  }
+  .result-line {
+    background: rgba(255,255,255,.14);
+    border: 2px solid rgba(255,255,255,.25);
+    border-radius: 14px;
+    padding: 8px 14px;
+    font-size: 18px; font-weight: 900;
+  }
+
+  /* テスト用バー（#dev のときだけ表示） */
+  #devbar { position: fixed; top: 6px; right: 6px; z-index: 200; display: flex; gap: 6px; }
+  #devbar button {
+    font-family: inherit; font-size: 12px; font-weight: 800; color: #fff;
+    padding: 6px 10px; border-radius: 8px; border: none; cursor: pointer;
+    background: rgba(220,40,40,.82); box-shadow: 0 2px 6px rgba(0,0,0,.4);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, .flash.show, .yokai.hit, .choice.wrong { animation: none !important; transition: none !important; }
+  }
+
+  /* 絵文字のかわりの画像（font-size に合わせて拡大縮小） */
+  .face-img { height: 1em; width: auto; vertical-align: middle; object-fit: contain; }
+
+  /* battle: ホームにもどるボタン */
+  .battle-top { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+  .dougu-btn {
+    height: 40px; padding: 0 18px; border-radius: 999px;
+    font-family: inherit; font-weight: 900; font-size: 17px; cursor: pointer; color: var(--ink);
+    background: linear-gradient(180deg, #ffe681, #ffc62e);
+    border: 3px solid var(--ink);
+    box-shadow: 0 4px 0 rgba(0,0,0,.32);
+    transition: transform .08s ease, box-shadow .08s ease;
+  }
+  .dougu-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.32); }
+  .dougu-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+  /* どうぐトレイ（バトル中につかう） */
+  #itemTray {
+    position: fixed; inset: 0; z-index: 60; display: none;
+    align-items: flex-end; justify-content: center;
+    background: rgba(13,8,30,.55);
+  }
+  #itemTray.show { display: flex; animation: trayFade .18s ease; }
+  @keyframes trayFade { from { opacity: 0; } to { opacity: 1; } }
+  .tray-panel {
+    width: 100%; max-width: 560px;
+    background: var(--paper); color: var(--ink);
+    border-top: 4px solid var(--ink); border-radius: 22px 22px 0 0;
+    padding: 14px 14px calc(18px + env(safe-area-inset-bottom));
+    box-shadow: 0 -6px 0 rgba(0,0,0,.25);
+    animation: traySlide .22s ease;
+  }
+  @keyframes traySlide { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .tray-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .tray-head .tt { font-weight: 900; font-size: 19px; }
+  .tray-close {
+    font-family: inherit; font-weight: 800; font-size: 15px; cursor: pointer; color: var(--ink);
+    background: #fff; border: 3px solid var(--ink); border-radius: 999px; padding: 6px 16px;
+    box-shadow: 0 3px 0 rgba(0,0,0,.28);
+  }
+  .tray-close:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.28); }
+  .tray-list {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+    max-height: 46vh; overflow-y: auto; align-content: start;
+  }
+  .tray-item {
+    position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 9px 6px; border-radius: 16px; border: 3px solid var(--ink); cursor: pointer;
+    font-family: inherit; font-weight: 800; box-shadow: 0 4px 0 rgba(0,0,0,.22);
+  }
+  .tray-item:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.22); }
+  .tray-item.eff-attack { background: #ffe0d4; }
+  .tray-item.eff-heal   { background: #d7ffe0; }
+  .tray-item.eff-guard  { background: #d4ecff; }
+  .tray-item.eff-hint   { background: #fff2bf; }
+  .ti-face { font-size: 38px; line-height: 1; }
+  .ti-nm { font-size: 12px; text-align: center; line-height: 1.1; }
+  .ti-desc {
+    font-size: 10px; font-weight: 700; text-align: center; line-height: 1.15;
+    color: var(--ink); opacity: .72; margin-top: 1px;
+  }
+  .ti-cnt {
+    position: absolute; top: -8px; right: -6px;
+    background: var(--ink); color: #fff; font-size: 13px; font-weight: 900;
+    border-radius: 999px; padding: 1px 8px; border: 2px solid #fff;
+  }
+  .tray-empty { grid-column: 1 / -1; padding: 28px 10px; text-align: center; font-weight: 800; line-height: 1.6; opacity: .85; }
+
+  /* ヒント：まちがいの選択肢が2つ消える */
+  .choice.removed {
+    pointer-events: none;
+    animation: choicePuff .3s ease forwards;
+  }
+  @keyframes choicePuff {
+    0%   { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(.6); visibility: hidden; }
+  }
+
+  .home-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    font-size: 20px; line-height: 1; cursor: pointer; color: #fff;
+    background: rgba(255,255,255,.14);
+    border: 2px solid rgba(255,255,255,.32);
+    box-shadow: 0 3px 0 rgba(0,0,0,.3);
+    padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .08s ease, box-shadow .08s ease;
+  }
+  .home-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.3); }
+  .home-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+  /* title sub-menu */
+  .title-menu { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; }
+  .menu-label {
+    text-align: left; font-size: 14px; font-weight: 900; letter-spacing: 1px;
+    color: var(--paper); opacity: .92; margin: 2px 0 -2px 10px;
+    text-shadow: 0 2px 0 rgba(0,0,0,.5);
+  }
+  .menu-label + .menu-label, .menu-row + .menu-label { margin-top: 6px; }
+  /* しゅーてぃんぐは オレンジの大ボタン（ばとると同格の「げーむ」） */
+  .btn-shoot {
+    background: linear-gradient(180deg, #ff9a3d 0%, #e06a10 100%);
+    box-shadow: 0 6px 0 #b3540c, 0 10px 18px rgba(0,0,0,.35);
+  }
+  .btn-shoot:active { box-shadow: 0 1px 0 #b3540c, 0 4px 10px rgba(0,0,0,.3); }
+  .menu-row { display: flex; gap: 10px; }
+  .menu-row .btn-sub { flex: 1; font-size: 15px; padding: 12px 8px; white-space: nowrap; }
+  .title-stats {
+    width: 100%; max-width: 320px;
+    display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 2px;
+  }
+  .mini-pill {
+    background: rgba(13,8,30,.62); color: var(--paper);
+    border: 2px solid rgba(255,210,63,.52);
+    border-radius: 999px; padding: 5px 12px;
+    font-size: 15px; font-weight: 900;
+    box-shadow: 0 3px 0 rgba(0,0,0,.26);
+  }
+  .btn-sub {
+    font-size: 18px; padding: 12px 22px;
+    background: linear-gradient(180deg, var(--yokai) 0%, var(--yokai-dark) 100%);
+    box-shadow: 0 5px 0 var(--yokai-dark), 0 8px 14px rgba(0,0,0,.3);
+  }
+  .btn-sub:active { box-shadow: 0 1px 0 var(--yokai-dark); }
+
+  /* item pick（レベルクリアで1こえらぶ。1行に1こ・大きめ） */
+  #itemPick {
+    justify-content: flex-start; gap: 14px; overflow-y: auto;
+    background: url('images/hero_select_bg.png') center / cover no-repeat, var(--night-1);
+  }
+  .ip-title { width: min(80%, 380px); height: auto; margin: 4px auto 2px; filter: drop-shadow(0 4px 7px rgba(0,0,0,.5)); }
+  .final-count {
+    font-weight: 900; font-size: clamp(20px, 6vw, 30px); color: var(--gold);
+    -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill;
+    text-shadow: 0 3px 0 rgba(0,0,0,.4); margin: 0 0 4px;
+  }
+  /* 最後の「選び放題」：全アイテムをグリッドで */
+  .item-row.all { flex-direction: row; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  .item-row.all .item-choice {
+    width: min(28vw, 140px); flex-direction: column; gap: 4px;
+    font-size: min(22vw, 92px); padding: 8px 6px; border-radius: 18px; max-width: none;
+  }
+  .item-row.all .item-choice .ic-text { align-items: center; }
+  .item-row.all .item-choice .ic-nm { font-size: 13px; }
+  .item-row.all .item-choice .ic-desc { font-size: 10px; text-align: center; }
+
+  /* クリア画面の成績パネル */
+  .clear-stats {
+    background: rgba(13,8,30,.62); border: 2px solid rgba(255,210,63,.5);
+    border-radius: 18px; padding: 12px 18px; width: min(86%, 360px);
+    display: flex; flex-direction: column; gap: 8px;
+    box-shadow: 0 6px 16px rgba(0,0,0,.5);
+  }
+  .clear-stats .cs-row {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 14px;
+    font-size: 20px; font-weight: 800; color: var(--paper);
+  }
+  .clear-stats .cs-row b { font-size: 26px; color: var(--gold); }
+  .item-row { display: flex; flex-direction: column; gap: 10px; width: 100%; align-items: center; }
+  .item-choice {
+    font-family: inherit; border: none; cursor: pointer;
+    width: 100%; max-width: 400px; border-radius: 28px; padding: 8px 18px;
+    font-size: min(20vw, 12vh, 92px);
+    background: linear-gradient(180deg, #ffffff, #ece6ff); color: var(--ink);
+    display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 16px;
+    box-shadow: 0 6px 0 #b9add9, 0 8px 14px rgba(0,0,0,.3);
+    transition: transform .08s ease;
+  }
+  .item-choice .ic-text { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+  .item-choice .ic-nm { font-size: clamp(20px, 5.5vw, 28px); font-weight: 800; line-height: 1.2; }
+  .item-choice .ic-desc { font-size: clamp(11px, 3vw, 14px); font-weight: 700; line-height: 1.15; opacity: .68; }
+  /* カテゴリで うすく いろづけ */
+  .item-choice.eff-attack { background: linear-gradient(180deg, #ffffff, #ffe4d9); }
+  .item-choice.eff-heal   { background: linear-gradient(180deg, #ffffff, #dcffe5); }
+  .item-choice.eff-guard  { background: linear-gradient(180deg, #ffffff, #dcefff); }
+  .item-choice.eff-hint   { background: linear-gradient(180deg, #ffffff, #fff4cf); }
+  .item-choice:active { transform: translateY(5px) scale(.98); box-shadow: 0 1px 0 #b9add9; }
+  .item-choice:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
+
+  /* sub screens (zukan / どうぐ) */
+  .sub-screen { justify-content: flex-start; gap: 14px; padding-top: 0; overflow-y: auto; }
+  .sub-head { font-size: 22px; font-weight: 900; }
+  /* 上部バー：画面全体がスクロールしても「もどる」は上に貼り付く（sticky） */
+  .sub-bar {
+    position: sticky; top: 0; z-index: 3;
+    width: 100%; display: flex; align-items: center; gap: 10px;
+    padding: 14px 0 10px; background: var(--night-1);
+  }
+  .btn-back {
+    font-family: inherit; font-weight: 800; border: none; cursor: pointer;
+    background: rgba(255,255,255,.16); color: #fff;
+    border: 2px solid rgba(255,255,255,.32);
+    border-radius: 999px; padding: 8px 16px; font-size: 16px; flex-shrink: 0;
+    box-shadow: 0 3px 0 rgba(0,0,0,.3);
+  }
+  .btn-back:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.3); }
+  .btn-back:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .zukan-grid, .item-grid {
+    width: 100%;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: start;
+    padding: 4px;
+  }
+  .zukan-card {
+    background: rgba(20,12,44,.45);
+    border: 2px solid transparent;
+    border-radius: 20px; padding: 12px 8px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .zukan-card.locked { opacity: .65; }
+  .zukan-card .z-face { font-size: 56px; line-height: 1; }
+  .zukan-card.locked .z-face { filter: grayscale(1) brightness(.45); }
+  .zukan-card .z-nm { font-weight: 800; font-size: 17px; }
+  .zukan-card .z-meta { font-size: 12px; opacity: .85; line-height: 1.4; }
+
+  .item-cell {
+    position: relative;
+    border-radius: 18px; padding: 12px 6px;
+    background: transparent; border: 2px solid transparent;
+    display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 60px;
+  }
+  .item-cell .ic-nm { font-size: 14px; font-weight: 800; line-height: 1.2; }
+  .item-cell .ic-count {
+    position: absolute; top: 6px; right: 8px;
+    background: var(--gold); color: var(--ink);
+    font-size: 16px; font-weight: 900; line-height: 1;
+    padding: 3px 8px; border-radius: 999px; box-shadow: 0 2px 0 #c79b14;
+  }
+  .book-empty { grid-column: 1 / -1; padding: 30px 10px; font-weight: 800; line-height: 1.6; opacity: .9; }
+
+  /* しゅーてぃんぐ（🚀 ミニゲーム） */
+  #shoot { justify-content: flex-start; padding: 10px 12px calc(12px + env(safe-area-inset-bottom)); gap: 8px; }
+  .shoot-hud {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(13,8,30,.62); border: 2px solid rgba(255,210,63,.5);
+    border-radius: 999px; padding: 5px 14px;
+    font-weight: 900; font-size: clamp(14px, 4vw, 17px); white-space: nowrap;
+  }
+  .shoot-field {
+    position: relative; flex: 1; width: 100%; min-height: 0;
+    border-radius: 18px; border: 3px solid var(--ink);
+    background: #2a1a4a center / cover no-repeat;
+    box-shadow: 0 6px 0 rgba(0,0,0,.3), inset 0 0 0 2px rgba(255,255,255,.18);
+    overflow: hidden; touch-action: manipulation;
+  }
+  .shoot-enemy {
+    position: absolute; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    cursor: pointer; z-index: 4; padding: 6px;
+  }
+  .shoot-enemy .se-face {
+    font-size: clamp(58px, 17vw, 96px); line-height: 1;
+    filter: drop-shadow(0 5px 5px rgba(0,0,0,.45));
+  }
+  .shoot-enemy .se-word {
+    background: var(--paper); color: var(--ink);
+    border: 3px solid var(--ink); border-radius: 999px;
+    font-weight: 900; font-size: clamp(15px, 4.4vw, 21px); letter-spacing: 1px;
+    padding: 3px 12px; white-space: nowrap;
+    box-shadow: 0 3px 0 rgba(0,0,0,.3);
+  }
+  .shoot-enemy.hit { animation: shake .4s; }
+  .shoot-hero {
+    position: absolute; bottom: 1%; left: 50%; transform: translateX(-50%);
+    font-size: clamp(84px, 25vw, 140px); line-height: 1; z-index: 3;
+    filter: drop-shadow(0 6px 6px rgba(0,0,0,.4)); pointer-events: none;
+  }
+  .shoot-msg { padding: 8px 14px; font-size: clamp(16px, 4.6vw, 20px); }
+  .shoot-msg #shootMsg { flex: 1; text-align: center; }
+  #shootOver { justify-content: center; gap: 18px; }
+  /* どうぐの ため/ガードの ひかりは しゅーてぃんぐの ヒーローにも */
+  .shoot-hero.charged { animation: chargePulse .7s ease-in-out infinite alternate; }
+  .shoot-hero.guarding { animation: guardPulse .7s ease-in-out infinite alternate; }
+  /* とくてんの「+N」ポップ */
+  .pts-pop {
+    position: absolute; z-index: 7; pointer-events: none;
+    transform: translate(-50%,-50%);
+    font-weight: 900; font-size: clamp(30px, 9vw, 48px); color: var(--gold);
+    -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill;
+    text-shadow: 0 3px 0 rgba(0,0,0,.45);
+  }
+
+  /* もじを とりもどせ！（🔤 ミニゲーム） */
+  #moji { justify-content: flex-start; padding: 10px 12px calc(12px + env(safe-area-inset-bottom)); gap: 8px; }
+  .moji-field {
+    position: relative; flex: 1; width: 100%; min-height: 0;
+    border-radius: 18px; border: 3px solid var(--ink);
+    background: #2a1a4a center / cover no-repeat;
+    box-shadow: 0 6px 0 rgba(0,0,0,.3), inset 0 0 0 2px rgba(255,255,255,.18);
+    overflow: hidden; touch-action: manipulation;
+  }
+  .moji-word {
+    position: absolute; top: 13%; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 7px; z-index: 4; align-items: center;
+    font-size: clamp(28px, calc(min(90vw, 540px) / var(--n) * .6), 60px);
+  }
+  .moji-slot {
+    width: clamp(48px, calc(min(90vw, 540px) / var(--n) - 7px), 100px);
+    aspect-ratio: 1;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; line-height: 1;
+  }
+  .moji-slot.okay {
+    background: var(--paper); color: var(--ink);
+    border: 3px solid var(--ink); border-radius: 14px;
+    box-shadow: 0 4px 0 rgba(0,0,0,.3);
+    position: relative; z-index: 2;   /* 大きな妖怪より 文字を まえに */
+  }
+  .moji-slot.hole .ms-yk {
+    font-size: 2.5em; line-height: 1;
+    filter: drop-shadow(0 4px 5px rgba(0,0,0,.45));
+    animation: ykBob 1.2s ease-in-out infinite alternate;
+    display: block;
+  }
+  @keyframes ykBob { from { transform: translateY(-4px); } to { transform: translateY(4px); } }
+  .moji-slot.hole.laugh .ms-yk { animation: ykLaugh .5s ease; }
+  @keyframes ykLaugh {
+    0%,100% { transform: rotate(0) scale(1); }
+    25% { transform: rotate(-10deg) scale(1.15); }
+    50% { transform: rotate(9deg) scale(1.15); }
+    75% { transform: rotate(-7deg) scale(1.1); }
+  }
+  .moji-slot.pop { animation: slotPop .5s ease; }
+  @keyframes slotPop {
+    0% { transform: scale(.2); }
+    60% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+  }
+  /* ことば かんせい！ 全マスが きんいろに ひかる */
+  .moji-word.done .moji-slot.okay { animation: wordGlow .55s ease 2 alternate; }
+  @keyframes wordGlow {
+    from { box-shadow: 0 4px 0 rgba(0,0,0,.3); }
+    to   { box-shadow: 0 0 22px 8px var(--gold), 0 4px 0 rgba(0,0,0,.3); background: #fff7d6; }
+  }
+  .moji-hero { left: 24%; font-size: clamp(150px, 45vw, 250px); }
+  /* もじビーム（もじが とんでいく） */
+  .moji-beam {
+    position: absolute; z-index: 6; pointer-events: none;
+    transform: translate(-50%,-50%);
+    font-weight: 900; font-size: clamp(40px, 12vw, 64px); color: #fff;
+    -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill;
+  }
+  .moji-beam.big { font-size: clamp(56px, 16vw, 88px); }
+  /* もじタイル（8まい） */
+  .moji-tiles {
+    width: 100%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  }
+  .moji-tile {
+    font-family: inherit; font-weight: 900; border: none; border-radius: 16px;
+    background: linear-gradient(180deg, #ffffff, #ece6ff); color: var(--ink);
+    cursor: pointer; min-height: 56px; padding: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(24px, 7vw, 38px);
+    box-shadow: 0 5px 0 #b9add9, 0 7px 12px rgba(0,0,0,.3);
+    transition: transform .08s ease;
+  }
+  .moji-tile:active { transform: translateY(4px); box-shadow: 0 1px 0 #b9add9; }
+  .moji-tile:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
+  .moji-tile.good { background: linear-gradient(180deg, #b6ffce, #46e07a); box-shadow: 0 5px 0 #1f9c4f; }
+  .moji-tile.wrong { background: linear-gradient(180deg, #ffc4cf, #ff5d73); box-shadow: 0 5px 0 #c2384f; animation: shake .4s; }
+  .moji-tile.dim { opacity: .35; }
+  .moji-tile.used { opacity: .45; background: linear-gradient(180deg, #e8ffef, #d7ffe0); }
+  .moji-tile.removed { pointer-events: none; animation: choicePuff .3s ease forwards; }
+  #mojiOver { justify-content: center; gap: 18px; }
+  /* もじゲームは みどりの大ボタン */
+  .btn-moji {
+    background: linear-gradient(180deg, #46e07a 0%, #1f9c4f 100%);
+    box-shadow: 0 6px 0 #157a3c, 0 10px 18px rgba(0,0,0,.35);
+    font-size: 20px;
+  }
+  .btn-moji:active { box-shadow: 0 1px 0 #157a3c, 0 4px 10px rgba(0,0,0,.3); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- TITLE -->
+  <section id="title" class="screen active">
+    <div class="title-stats" id="titleStats">
+      <span class="mini-pill">⭐ さいこう <b id="titleBest">0</b></span>
+      <span class="mini-pill">👹 <b id="titleYokai">0</b></span>
+      <span class="mini-pill">🚀 <b id="titleShoot">0</b></span>
+      <span class="mini-pill">🔤 <b id="titleMoji">0</b></span>
+    </div>
+    <div class="title-menu">
+      <div class="menu-label">🎮 げーむ</div>
+      <button class="btn" id="startBtn">⚔️ ばとる</button>
+      <button class="btn btn-shoot" id="shootBtn">🚀 しゅーてぃんぐ</button>
+      <button class="btn btn-moji" id="mojiBtn">🔤 もじを とりもどせ！</button>
+      <div class="menu-label">📚 これくしょん</div>
+      <div class="menu-row">
+        <button class="btn btn-sub" id="zukanBtn">📖 ようかいずかん</button>
+        <button class="btn btn-sub" id="itemsBtn">🎒 ばとるあいてむ</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- HERO SELECT -->
+  <section id="select" class="screen">
+    <img class="hs-title" src="images/hero_select_title.png" alt="きみの ひーろーを えらんでね" />
+    <div class="hero-grid" id="heroGrid"></div>
+    <button class="btn" id="goBattle" disabled style="opacity:.5">ばとるへ！</button>
+  </section>
+
+  <!-- YOKAI SELECT（レベルごとに たたかう相手をえらぶ） -->
+  <section id="yokaiSelect" class="screen">
+    <div class="ys-level">
+      <img class="ys-level-img" src="images/yokai_select_level.png" alt="れべる" />
+      <span class="ys-level-num" id="yokaiSelLv">1</span>
+    </div>
+    <img class="ys-title" src="images/yokai_select_title.png" alt="どの ようかいと たたかう？" />
+    <div class="yokai-row" id="yokaiChoices"></div>
+  </section>
+
+  <!-- STAGE SELECT（たたかう ばしょを えらぶ） -->
+  <section id="stageSelect" class="screen">
+    <div class="stage-title" id="stageTitle">⚔️ どこで たたかう？</div>
+    <div class="stage-grid" id="stageChoices"></div>
+  </section>
+
+  <!-- BATTLE -->
+  <section id="battle" class="screen">
+    <div class="battle-top">
+      <button class="home-btn" id="homeBtn" aria-label="ほーむにもどる">🏠</button>
+      <button class="dougu-btn" id="douguBtn">🎒 どうぐ</button>
+    </div>
+    <div class="field">
+      <div class="info enemy">
+        <div class="row1"><span id="enemyName">ようかい</span><span class="lv">Lv <span id="enemyLv">1</span></span></div>
+        <div class="hpline"><span class="hp">HP</span><div class="hpbar"><i id="yokaiHp" style="width:100%"></i></div></div>
+      </div>
+      <div class="platform enemy-plat"></div>
+      <div class="mon enemy-mon" id="yokai">👹</div>
+
+      <div class="platform hero-plat"></div>
+      <div class="mon hero-mon" id="heroMon">🦸</div>
+      <div class="info hero">
+        <div class="row1"><span id="heroName">ひーろー</span><span class="lv">Lv <span id="heroLv">1</span></span></div>
+        <div class="statline">
+          <div class="hearts" id="hearts"></div>
+          <div class="score">⭐ <span id="score">0</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="msgbox">
+      <span class="pic" id="pic"></span>
+      <span id="question">きいて どれだ〜！</span>
+      <button class="listen-btn" id="listenBtn" aria-label="もういちど きく">🔊</button>
+    </div>
+
+    <div class="choices" id="choices"></div>
+  </section>
+
+  <!-- しゅーてぃんぐ（🚀 ミニゲーム） -->
+  <section id="shoot" class="screen">
+    <div class="battle-top">
+      <button class="home-btn" id="shootHome" aria-label="ほーむにもどる">🏠</button>
+      <div class="shoot-hud">
+        <span id="shootHearts"></span>
+        <span>👹<span id="shootQuota">0</span></span>
+        <span>⭐<span id="shootScore">0</span></span>
+      </div>
+      <button class="dougu-btn" id="shootDougu">🎒</button>
+    </div>
+    <div class="shoot-field" id="shootField">
+      <div class="shoot-hero" id="shootHero">🦸</div>
+    </div>
+    <div class="msgbox shoot-msg">
+      <span id="shootMsg">きいて うちおとせ〜！</span>
+      <button class="listen-btn" id="shootListen" aria-label="もういちど きく">🔊</button>
+    </div>
+  </section>
+
+  <!-- しゅーてぃんぐ おわり -->
+  <section id="shootOver" class="screen">
+    <div class="big-emoji">🚀</div>
+    <div class="end-title">しゅーてぃんぐ おしまい！</div>
+    <div class="score-pill">⭐ <span id="shootOverScore">0</span> てん</div>
+    <div class="result-line">🏆 さいこう <span id="shootOverBest">0</span></div>
+    <button class="btn" id="shootRetry">もういちど！</button>
+    <button class="btn btn-sub" id="shootOverHome">ほーむへ</button>
+  </section>
+
+  <!-- もじを とりもどせ！（🔤 ミニゲーム） -->
+  <section id="moji" class="screen">
+    <div class="battle-top">
+      <button class="home-btn" id="mojiHome" aria-label="ほーむにもどる">🏠</button>
+      <div class="shoot-hud">
+        <span id="mojiHearts"></span>
+        <span>🔤<span id="mojiQuota">0</span></span>
+        <span>⭐<span id="mojiScore">0</span></span>
+      </div>
+      <button class="dougu-btn" id="mojiDougu">🎒</button>
+    </div>
+    <div class="moji-field" id="mojiField">
+      <div class="moji-word" id="mojiWord"></div>
+      <div class="shoot-hero moji-hero" id="mojiHero">🦸</div>
+    </div>
+    <div class="msgbox shoot-msg">
+      <span class="pic" id="mojiPic"></span>
+      <span id="mojiMsg">ようかいが もじを かくした！</span>
+      <button class="listen-btn" id="mojiListen" aria-label="もういちど きく">🔊</button>
+    </div>
+    <div class="moji-tiles" id="mojiTiles"></div>
+  </section>
+
+  <!-- もじを とりもどせ おわり -->
+  <section id="mojiOver" class="screen">
+    <div class="big-emoji">🔤</div>
+    <div class="end-title">もじとりもどし おしまい！</div>
+    <div class="score-pill">⭐ <span id="mojiOverScore">0</span> てん</div>
+    <div class="result-line">🏆 さいこう <span id="mojiOverBest">0</span></div>
+    <button class="btn" id="mojiRetry">もういちど！</button>
+    <button class="btn btn-sub" id="mojiOverHome">ほーむへ</button>
+  </section>
+
+  <!-- GAME OVER -->
+  <section id="over" class="screen">
+    <div class="big-emoji">😵</div>
+    <div class="end-title">やられた〜！</div>
+    <div class="score-pill">⭐ <span id="overScore">0</span> てん</div>
+    <div class="result-line">せいかいりつ <span id="overAccuracy">0</span>% / さいこう <span id="overBest">0</span></div>
+    <button class="btn" id="retryBtn">もういちど ばとる！</button>
+  </section>
+
+  <!-- CLEARED -->
+  <section id="cleared" class="screen">
+    <div class="clear-stats">
+      <div class="cs-row"><span>⭐ すこあ</span><b id="clearScore">0</b></div>
+      <div class="cs-row"><span>🏆 さいこう</span><b id="clearBest">0</b></div>
+      <div class="cs-row"><span>🎯 せいかいりつ</span><b><span id="clearAccuracy">0</span>%</b></div>
+      <div class="cs-row"><span>🎒 どうぐ</span><b id="clearItems">0</b></div>
+      <div class="cs-row"><span>👹 ようかい</span><b id="clearYokai">0</b></div>
+    </div>
+    <button class="btn" id="againBtn">もういちど あそぶ</button>
+  </section>
+
+  <!-- ITEM PICK（レベルクリアで1こえらぶ） -->
+  <section id="itemPick" class="screen">
+    <img class="ip-title" src="images/item_pick_title.png" alt="ばとるあいてむを えらんでね" />
+    <div class="final-count" id="finalCount" style="display:none"></div>
+    <div class="item-row" id="itemChoices"></div>
+  </section>
+
+  <!-- ようかいずかん -->
+  <section id="zukan" class="screen sub-screen">
+    <div class="sub-bar">
+      <button class="btn-back" id="zukanBack">← もどる</button>
+      <div class="sub-head">📖 ようかいずかん</div>
+    </div>
+    <div class="zukan-grid" id="zukanGrid"></div>
+  </section>
+
+  <!-- どうぐ（ゲットしたアイテム） -->
+  <section id="items" class="screen sub-screen">
+    <div class="sub-bar">
+      <button class="btn-back" id="itemsBack">← もどる</button>
+      <div class="sub-head">🎒 ばとるあいてむ</div>
+    </div>
+    <div class="item-grid" id="itemGrid"></div>
+  </section>
+
+  <div class="flash" id="flash"></div>
+  <div class="popup" id="popup"><img id="popupImg" alt="" /></div>
+  <div class="item-pop" id="itemPop"><img id="itemPopImg" alt="" /></div>
+
+  <!-- どうぐトレイ（バトル中につかう）-->
+  <div id="itemTray">
+    <div class="tray-panel">
+      <div class="tray-head">
+        <span class="tt">🎒 どうぐを つかう</span>
+        <button class="tray-close" id="trayClose">とじる</button>
+      </div>
+      <div class="tray-list" id="itemTrayList"></div>
+    </div>
+  </div>
+
+  <!-- テスト用（URLに #dev のときだけ表示） -->
+  <div id="devbar" style="display:none">
+    <button id="devLast">さいごへ</button>
+    <button id="devWin">かち</button>
+  </div>
+</div>
+
+<!-- 設定・もんだいデータ（編集はこちら）-->
+<script src="config.js?v=27"></script>
+<!-- ゲームロジック -->
+<script src="game.js?v=27"></script>
+</body>
+</html>

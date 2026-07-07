@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>リセット — ひらがなばとる</title>
+<style>
+  html,body{height:100%;margin:0;}
+  body{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+    font-family:"Hiragino Maru Gothic ProN",system-ui,sans-serif;color:#fffdf5;text-align:center;padding:24px;
+    background:radial-gradient(120% 90% at 50% 0%, #4a2391 0%, #221551 60%, #160d33 100%);
+  }
+  .emoji{font-size:80px;}
+  h1{font-size:28px;margin:0;}
+  p{font-size:18px;opacity:.9;margin:0;line-height:1.6;}
+  .ok{color:#46e07a;font-weight:900;}
+  a.btn{
+    text-decoration:none;font-weight:800;color:#fff;
+    background:linear-gradient(180deg,#34c2e3,#1b8fb0);
+    border-radius:999px;padding:16px 30px;font-size:20px;
+    box-shadow:0 6px 0 #1b8fb0,0 10px 18px rgba(0,0,0,.35);
+  }
+</style>
+</head>
+<body>
+  <div class="emoji">🧹</div>
+  <h1 id="msg">けしています…</h1>
+  <p id="sub"></p>
+  <a class="btn" href="index.html">ゲームへ もどる</a>
+<script>
+  // ゲームの保存データ（妖怪図鑑・ばとるあいてむ）を消す
+  const KEY = 'hiraganaBattle.progress.v1';
+  try { localStorage.removeItem(KEY); }
+  catch(e){}
+  document.getElementById('msg').innerHTML = '<span class="ok">からっぽに したよ！</span>';
+  document.getElementById('sub').textContent = 'ようかいずかんと ばとるあいてむが リセットされました。';
+</script>
+</body>
+</html>
