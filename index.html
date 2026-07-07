@@ -431,6 +431,13 @@
     border-radius: 999px; padding: 6px 18px; font-size: 22px; font-weight: 800;
     box-shadow: 0 4px 0 #c79b14;
   }
+  .result-line {
+    background: rgba(255,255,255,.14);
+    border: 2px solid rgba(255,255,255,.25);
+    border-radius: 14px;
+    padding: 8px 14px;
+    font-size: 18px; font-weight: 900;
+  }
 
   /* テスト用バー（#dev のときだけ表示） */
   #devbar { position: fixed; top: 6px; right: 6px; z-index: 200; display: flex; gap: 6px; }
@@ -537,6 +544,18 @@
 
   /* title sub-menu */
   .title-menu { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; }
+  .title-stats {
+    width: 100%; max-width: 320px;
+    display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 2px;
+  }
+  .mini-pill {
+    background: rgba(13,8,30,.62); color: var(--paper);
+    border: 2px solid rgba(255,210,63,.52);
+    border-radius: 999px; padding: 5px 12px;
+    font-size: 15px; font-weight: 900;
+    box-shadow: 0 3px 0 rgba(0,0,0,.26);
+  }
   .btn-sub {
     font-size: 18px; padding: 12px 22px;
     background: linear-gradient(180deg, var(--yokai) 0%, var(--yokai-dark) 100%);
@@ -647,6 +666,47 @@
     padding: 3px 8px; border-radius: 999px; box-shadow: 0 2px 0 #c79b14;
   }
   .book-empty { grid-column: 1 / -1; padding: 30px 10px; font-weight: 800; line-height: 1.6; opacity: .9; }
+
+  /* しゅーてぃんぐ（🚀 ミニゲーム） */
+  #shoot { justify-content: flex-start; padding: 10px 12px calc(12px + env(safe-area-inset-bottom)); gap: 8px; }
+  .shoot-hud {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(13,8,30,.62); border: 2px solid rgba(255,210,63,.5);
+    border-radius: 999px; padding: 5px 14px;
+    font-weight: 900; font-size: clamp(14px, 4vw, 17px); white-space: nowrap;
+  }
+  .shoot-field {
+    position: relative; flex: 1; width: 100%; min-height: 0;
+    border-radius: 18px; border: 3px solid var(--ink);
+    background: #2a1a4a center / cover no-repeat;
+    box-shadow: 0 6px 0 rgba(0,0,0,.3), inset 0 0 0 2px rgba(255,255,255,.18);
+    overflow: hidden; touch-action: manipulation;
+  }
+  .shoot-enemy {
+    position: absolute; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    cursor: pointer; z-index: 4; padding: 6px;
+  }
+  .shoot-enemy .se-face {
+    font-size: clamp(58px, 17vw, 96px); line-height: 1;
+    filter: drop-shadow(0 5px 5px rgba(0,0,0,.45));
+  }
+  .shoot-enemy .se-word {
+    background: var(--paper); color: var(--ink);
+    border: 3px solid var(--ink); border-radius: 999px;
+    font-weight: 900; font-size: clamp(15px, 4.4vw, 21px); letter-spacing: 1px;
+    padding: 3px 12px; white-space: nowrap;
+    box-shadow: 0 3px 0 rgba(0,0,0,.3);
+  }
+  .shoot-enemy.hit { animation: shake .4s; }
+  .shoot-hero {
+    position: absolute; bottom: 1%; left: 50%; transform: translateX(-50%);
+    font-size: clamp(84px, 25vw, 140px); line-height: 1; z-index: 3;
+    filter: drop-shadow(0 6px 6px rgba(0,0,0,.4)); pointer-events: none;
+  }
+  .shoot-msg { padding: 8px 14px; font-size: clamp(16px, 4.6vw, 20px); }
+  .shoot-msg #shootMsg { flex: 1; text-align: center; }
+  #shootOver { justify-content: center; gap: 18px; }
 </style>
 </head>
 <body>
@@ -654,8 +714,14 @@
 
   <!-- TITLE -->
   <section id="title" class="screen active">
+    <div class="title-stats" id="titleStats">
+      <span class="mini-pill">⭐ さいこう <b id="titleBest">0</b></span>
+      <span class="mini-pill">👹 <b id="titleYokai">0</b></span>
+      <span class="mini-pill">🚀 <b id="titleShoot">0</b></span>
+    </div>
     <button class="btn" id="startBtn">はじめる</button>
     <div class="title-menu">
+      <button class="btn btn-sub" id="shootBtn">🚀 しゅーてぃんぐ</button>
       <button class="btn btn-sub" id="zukanBtn">📖 ようかいずかん</button>
       <button class="btn btn-sub" id="itemsBtn">🎒 ばとるあいてむ</button>
     </div>
@@ -718,11 +784,40 @@
     <div class="choices" id="choices"></div>
   </section>
 
+  <!-- しゅーてぃんぐ（🚀 ミニゲーム） -->
+  <section id="shoot" class="screen">
+    <div class="battle-top">
+      <button class="home-btn" id="shootHome" aria-label="ほーむにもどる">🏠</button>
+      <div class="shoot-hud">
+        <span id="shootHearts"></span>
+        <span>⭐ <span id="shootScore">0</span></span>
+      </div>
+    </div>
+    <div class="shoot-field" id="shootField">
+      <div class="shoot-hero" id="shootHero">🦸</div>
+    </div>
+    <div class="msgbox shoot-msg">
+      <span id="shootMsg">きいて うちおとせ〜！</span>
+      <button class="listen-btn" id="shootListen" aria-label="もういちど きく">🔊</button>
+    </div>
+  </section>
+
+  <!-- しゅーてぃんぐ おわり -->
+  <section id="shootOver" class="screen">
+    <div class="big-emoji">🚀</div>
+    <div class="end-title">しゅーてぃんぐ おしまい！</div>
+    <div class="score-pill">⭐ <span id="shootOverScore">0</span> てん</div>
+    <div class="result-line">🏆 さいこう <span id="shootOverBest">0</span></div>
+    <button class="btn" id="shootRetry">もういちど！</button>
+    <button class="btn btn-sub" id="shootOverHome">ほーむへ</button>
+  </section>
+
   <!-- GAME OVER -->
   <section id="over" class="screen">
     <div class="big-emoji">😵</div>
     <div class="end-title">やられた〜！</div>
     <div class="score-pill">⭐ <span id="overScore">0</span> てん</div>
+    <div class="result-line">せいかいりつ <span id="overAccuracy">0</span>% / さいこう <span id="overBest">0</span></div>
     <button class="btn" id="retryBtn">もういちど ばとる！</button>
   </section>
 
@@ -730,6 +825,8 @@
   <section id="cleared" class="screen">
     <div class="clear-stats">
       <div class="cs-row"><span>⭐ すこあ</span><b id="clearScore">0</b></div>
+      <div class="cs-row"><span>🏆 さいこう</span><b id="clearBest">0</b></div>
+      <div class="cs-row"><span>🎯 せいかいりつ</span><b><span id="clearAccuracy">0</span>%</b></div>
       <div class="cs-row"><span>🎒 どうぐ</span><b id="clearItems">0</b></div>
       <div class="cs-row"><span>👹 ようかい</span><b id="clearYokai">0</b></div>
     </div>
@@ -784,8 +881,8 @@
 </div>
 
 <!-- 設定・もんだいデータ（編集はこちら）-->
-<script src="config.js?v=20"></script>
+<script src="config.js?v=22"></script>
 <!-- ゲームロジック -->
-<script src="game.js?v=20"></script>
+<script src="game.js?v=22"></script>
 </body>
 </html>
