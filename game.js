@@ -47,11 +47,12 @@ function loadProgress(){
         items: p.items || [],
         stats: p.stats || {},
         bestScore: p.bestScore || 0,
-        shootBest: p.shootBest || 0
+        shootBest: p.shootBest || 0,
+        mojiBest: p.mojiBest || 0
       };
     }
   }catch(e){}
-  return { collection: {}, items: [], stats: {}, bestScore: 0, shootBest: 0 };  // collection: {yokaiId:{count,firstDate,lastDate,lastLevel}} / items: [itemId,...]
+  return { collection: {}, items: [], stats: {}, bestScore: 0, shootBest: 0, mojiBest: 0 };  // collection: {yokaiId:{count,firstDate,lastDate,lastLevel}} / items: [itemId,...]
 }
 function saveProgress(){
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify(progress)); }catch(e){}
@@ -66,6 +67,7 @@ function renderTitleStats(){
   $('titleBest').textContent = progress.bestScore || 0;
   $('titleYokai').textContent = totalDefeats();
   if($('titleShoot')) $('titleShoot').textContent = progress.shootBest || 0;
+  if($('titleMoji')) $('titleMoji').textContent = progress.mojiBest || 0;
 }
 function updateBestScore(){
   if(state.score > (progress.bestScore || 0)){
@@ -218,9 +220,10 @@ function chooseYokai(yk){
 }
 /* たたかう ばしょ（背景）を えらぶ（ばとる/しゅーてぃんぐ 共通） */
 function openStageSelect(){
-  $('stageTitle').textContent = state.mode === 'shoot'
-    ? ('🚀 れべる ' + (shoot.levelIdx + 1) + '！ どこで たたかう？')
-    : '⚔️ どこで たたかう？';
+  $('stageTitle').textContent =
+    state.mode === 'shoot' ? ('🚀 れべる ' + (shoot.levelIdx + 1) + '！ どこで たたかう？') :
+    state.mode === 'moji'  ? ('🔤 れべる ' + (moji.levelIdx + 1) + '！ どこで たたかう？') :
+    '⚔️ どこで たたかう？';
   const box = $('stageChoices'); box.innerHTML = '';
   if(typeof BATTLE_BGS === 'undefined' || !BATTLE_BGS.length){ chooseStage(null); return; }
   BATTLE_BGS.forEach(bg => {
@@ -235,6 +238,7 @@ function openStageSelect(){
 function chooseStage(bg){
   state.battleBg = bg;
   if(state.mode === 'shoot'){ beginShootLevel(bg); return; }
+  if(state.mode === 'moji'){ beginMojiLevel(bg); return; }
   spawnYokai(state.pendingYokai);
   renderTop();
   show('battle');
@@ -538,6 +542,20 @@ function playFanfare(){
   noise.connect(hp).connect(ng).connect(ctx.destination);
   noise.start(t); noise.stop(t + dur);
 }
+/* ことば かんせいの「キラーン♪」（みじかい あかるい音） */
+function playKira(){
+  const ctx = ensureAudio(); if(!ctx) return;
+  const t0 = ctx.currentTime;
+  [[880, 0], [1318.5, 0.09], [1760, 0.18]].forEach(([f, st]) => {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(f, t0 + st);
+    g.gain.setValueAtTime(0.0001, t0 + st);
+    g.gain.exponentialRampToValueAtTime(0.22, t0 + st + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + st + 0.28);
+    o.connect(g).connect(ctx.destination);
+    o.start(t0 + st); o.stop(t0 + st + 0.32);
+  });
+}
 function screenShake(){
   const app = $('app');
   app.classList.remove('shake'); void app.offsetWidth; app.classList.add('shake');
@@ -672,13 +690,18 @@ function pickItem(it){
     state.finalPicksLeft--;
     if(state.finalPicksLeft <= 0){
       // 3こ えらび終わったら おめでとう画面へ
-      if(state.mode === 'shoot') endShoot(true); else endGame(true);
+      if(state.mode === 'shoot') endShoot(true);
+      else if(state.mode === 'moji') endMoji(true);
+      else endGame(true);
     } else {
       updateFinalCount();          // まだ えらべる：カウンター更新＆選んだ演出
       popItem(it);
     }
   } else if(state.mode === 'shoot'){
     shoot.levelIdx++;
+    setTimeout(openStageSelect, 400);   // 次レベルの「どこで たたかう？」へ
+  } else if(state.mode === 'moji'){
+    moji.levelIdx++;
     setTimeout(openStageSelect, 400);   // 次レベルの「どこで たたかう？」へ
   } else {
     state.levelIdx++; state.yokaiIdx++;
@@ -738,8 +761,10 @@ function ownedItemCounts(){
   return counts;
 }
 function openItemTray(){
-  // ばとる中 か しゅーてぃんぐ中だけ
-  if(!$('battle').classList.contains('active') && !$('shoot').classList.contains('active')) return;
+  // げーむ中だけ（ばとる / しゅーてぃんぐ / もじ）
+  if(!$('battle').classList.contains('active') &&
+     !$('shoot').classList.contains('active') &&
+     !$('moji').classList.contains('active')) return;
   buildItemTray();
   $('itemTray').classList.add('show');
 }
@@ -784,6 +809,7 @@ function popItem(it){
 }
 function useItem(it){
   if($('shoot').classList.contains('active')){ useShootItem(it); return; }
+  if($('moji').classList.contains('active')){ useMojiItem(it); return; }
   if(!$('battle').classList.contains('active')) return;
   if(it.effect === 'attack'){
     if(state.yokaiHp <= 0) return;          // もう たおれている
@@ -1166,6 +1192,338 @@ function applyShootHint(){
   shoot.hintReady = false;
 }
 
+/* =========================================================
+   もじを とりもどせ！（🔤 ミニゲーム）
+   ようかいが ことばの もじを かくしている。ただしい もじタイルを
+   えらぶと もじビームで ようかいを たおして もじを とりもどせる。
+   ことばは ばとると同じ LEVELS。れべるで 穴のばしょが むずかしくなる。
+   ========================================================= */
+const MOJI_CFG = (typeof MOJI !== 'undefined') ? MOJI : { hearts: 5, tiles: 8 };
+const moji = {
+  on: false, busy: false, hearts: 0, score: 0,
+  levelIdx: 0, quota: 0,            // quota: このレベルで あと何この ことばを かんせいさせるか
+  attempts: 0, correctCount: 0,     // せいかいりつ用
+  armedAtk: false,                  // こうげきどうぐ：つぎの せいかいで 大きなもじビーム（とくてん2ばい）
+  guardArmed: false,                // ガードどうぐ：つぎの しっぱいで ❤️が へらない
+  word: null, holes: [],            // holes: [{pos, ch, done, el}]
+  usedWords: [],                    // このレベルで もう出した ことば（かたよらないように）
+  session: 0
+};
+function recordMojiAnswer(correct){
+  const key = (LEVELS[moji.levelIdx].name || ('Lv' + (moji.levelIdx + 1))) + '::' + moji.word.t;
+  bumpStat(key, moji.word.t, moji.levelIdx + 1, correct);
+  moji.attempts++;
+  if(correct) moji.correctCount++;
+}
+function mojiAccuracy(){
+  if(!moji.attempts) return 0;
+  return Math.round(moji.correctCount / moji.attempts * 100);
+}
+/* かいし：れべる1から。まず「どこで たたかう？」へ */
+function startMoji(){
+  moji.session++;
+  moji.levelIdx = 0;
+  moji.hearts = MOJI_CFG.hearts; moji.score = 0;
+  moji.attempts = 0; moji.correctCount = 0;
+  openStageSelect();
+}
+/* れべる開始（ステージを えらんだあと chooseStage から呼ばれる） */
+function beginMojiLevel(bg){
+  moji.on = true; moji.busy = false;
+  moji.quota = LEVELS[moji.levelIdx].hp || CONFIG.yokaiHp;   // ばとるの妖怪HPと同じ数の ことば
+  moji.armedAtk = false; moji.guardArmed = false;
+  moji.usedWords = [];
+  const f = $('mojiField');
+  const chosen = bg || ((typeof BATTLE_BGS !== 'undefined' && BATTLE_BGS.length)
+    ? BATTLE_BGS[Math.floor(Math.random() * BATTLE_BGS.length)] : null);
+  if(chosen) f.style.backgroundImage = "url('" + chosen + "')";
+  if(state.hero) setFace($('mojiHero'), state.hero);
+  $('mojiHero').classList.remove('charged', 'guarding');
+  closeItemTray();
+  renderMojiTop();
+  show('moji');
+  mojiNext();
+}
+function renderMojiTop(){
+  let h = '';
+  for(let i = 0; i < MOJI_CFG.hearts; i++) h += i < moji.hearts ? '❤️' : '🤍';
+  $('mojiHearts').textContent = h;
+  $('mojiQuota').textContent = Math.max(0, moji.quota);
+  $('mojiScore').textContent = moji.score;
+}
+/* 穴のばしょ：れべるが あがるほど むずかしい ばしょ・かず に */
+function mojiHolePositions(t, li){
+  const n = t.length;
+  const all = Array.from({ length: n }, (_, i) => i);
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+  // そのレベルの「とくべつな もじ」を ゆうせんして かくす（てんてん/まる/っ/ー/ゃゅょ）
+  const SPECIAL = {
+    4: 'がぎぐげござじずぜぞだぢづでどばびぶべぼ',
+    5: 'ぱぴぷぺぽ',
+    6: 'っ',
+    7: 'ー',
+    8: 'ゃゅょ'
+  };
+  const specialPos = SPECIAL[li] ? all.filter(i => SPECIAL[li].indexOf(t[i]) >= 0) : [];
+  if(li === 0) return [0];                 // れべる1: せんとう
+  if(li === 1) return [n - 1];             // れべる2: さいご
+  if(li === 2) return [Math.floor(n / 2)]; // れべる3: まんなか
+  if(li === 3) return [pick(all)];         // れべる4: ランダム
+  if(li <= 5) return [specialPos.length ? pick(specialPos) : pick(all)];   // れべる5-6: とくべつな もじ
+  // れべる7-9: 2つ（とくべつな もじを 1つ ふくめる）
+  const first = specialPos.length ? pick(specialPos) : pick(all);
+  if(n < 3) return [first];
+  const rest = all.filter(i => i !== first);
+  return [first, pick(rest)].sort((a, b) => a - b);
+}
+/* もじタイル8まい：こたえ＋にている もじ＋このレベルの もじ */
+function mojiBuildTiles(){
+  const answers = [];
+  moji.holes.forEach(h => { if(answers.indexOf(h.ch) < 0) answers.push(h.ch); });
+  const pool = [];
+  const add = ch => {
+    if(ch && answers.indexOf(ch) < 0 && pool.indexOf(ch) < 0) pool.push(ch);
+  };
+  // にている もじを ゆうせんして まぜる（よくみて！）
+  answers.forEach(ch => {
+    const sim = (typeof SIMILAR_KANA !== 'undefined' && SIMILAR_KANA[ch]) || '';
+    sim.split('').forEach(add);
+  });
+  // のこりは このレベルの ことばに 出てくる もじから
+  shuffle(LEVELS[moji.levelIdx].items.map(it => it.t).join('').split('')).forEach(add);
+  // まだ たりなければ 五十音から
+  'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん'
+    .split('').forEach(add);
+  return shuffle(answers.concat(pool.slice(0, MOJI_CFG.tiles - answers.length)));
+}
+/* つぎの ことば */
+function mojiNext(){
+  moji.busy = false;
+  $('mojiWord').classList.remove('done');
+  const items = LEVELS[moji.levelIdx].items;
+  let cands = items.filter(it => moji.usedWords.indexOf(it.t) < 0);
+  if(!cands.length){ moji.usedWords = []; cands = items; }
+  const item = cands[Math.floor(Math.random() * cands.length)];
+  moji.usedWords.push(item.t);
+  moji.word = item;
+  moji.holes = mojiHolePositions(item.t, moji.levelIdx)
+    .map(p => ({ pos: p, ch: item.t[p], done: false, el: null }));
+  // ことばマス（かくされた ところに ようかい）
+  const w = $('mojiWord'); w.innerHTML = '';
+  w.style.setProperty('--n', item.t.length);
+  item.t.split('').forEach((ch, i) => {
+    const hole = moji.holes.find(h => h.pos === i);
+    const d = document.createElement('div');
+    if(hole){
+      d.className = 'moji-slot hole';
+      const yk = YOKAI[Math.floor(Math.random() * YOKAI.length)];
+      d.innerHTML = '<span class="ms-yk">' + faceHTML(yk) + '</span>';
+      hole.el = d;
+    } else {
+      d.className = 'moji-slot okay';
+      d.textContent = ch;
+    }
+    w.appendChild(d);
+  });
+  // もじタイル
+  const g = $('mojiTiles'); g.innerHTML = '';
+  mojiBuildTiles().forEach(ch => {
+    const b = document.createElement('button');
+    b.className = 'moji-tile';
+    b.textContent = ch;
+    b.onclick = () => mojiTap(b, ch);
+    g.appendChild(b);
+  });
+  $('mojiPic').textContent = item.p || '';   // 絵ヒント（もじ探しゲームなので出してOK）
+  speak(item.t);
+}
+function mojiTap(btn, ch){
+  if(!moji.on || moji.busy || btn.disabled) return;
+  const hole = moji.holes.find(h => !h.done && h.ch === ch);
+  if(hole){
+    moji.busy = true;
+    recordMojiAnswer(true);
+    btn.classList.add('good');
+    mojiBeam(hole);
+  } else {
+    recordMojiAnswer(false);
+    btn.classList.add('wrong');
+    setTimeout(() => { btn.classList.remove('wrong'); btn.classList.add('dim'); btn.disabled = true; }, 450);
+    // ようかいが わらう
+    moji.holes.filter(h => !h.done).forEach(h => {
+      h.el.classList.add('laugh');
+      setTimeout(() => h.el.classList.remove('laugh'), 550);
+    });
+    const guarded = moji.guardArmed;
+    moji.guardArmed = false;
+    $('mojiHero').classList.remove('guarding');
+    if(guarded){
+      flash('🛡️', 'var(--good)');   // まもった！ ハートは へらない
+    } else {
+      flash('❌', 'var(--heart)');
+      moji.hearts--;
+      renderMojiTop();
+    }
+    if(moji.hearts <= 0){
+      moji.busy = true;
+      const sid = moji.session;
+      setTimeout(() => { if(sid === moji.session) endMoji(false); }, 700);
+    } else {
+      speak(moji.word.t);   // もういちど きかせてあげる
+    }
+  }
+}
+/* もじビーム：ヒーローから もじが とんでいく */
+function mojiBeam(hole){
+  const big = moji.armedAtk;
+  moji.armedAtk = false;
+  $('mojiHero').classList.remove('charged');
+  if(big) playHadouken(); else playBeam('hero');
+  const f = $('mojiField');
+  const s = pointIn(f, $('mojiHero'), 0.5, 0.15);
+  const e = centerIn(f, hole.el);
+  const p = document.createElement('div');
+  p.className = 'moji-beam' + (big ? ' big' : '');
+  p.textContent = hole.ch;
+  const col = state.hero && state.hero.col;
+  if(col) p.style.textShadow = `0 0 18px ${col}, 0 0 36px ${col}`;
+  p.style.left = s.x + 'px'; p.style.top = s.y + 'px';
+  f.appendChild(p);
+  const sid = moji.session;
+  p.animate(
+    [{ transform: 'translate(-50%,-50%) scale(.6) rotate(-8deg)', opacity: .7 },
+     { transform: `translate(calc(-50% + ${e.x - s.x}px), calc(-50% + ${e.y - s.y}px)) scale(1.15) rotate(6deg)`, opacity: 1 }],
+    { duration: 340, easing: 'cubic-bezier(.4,0,.8,1)' }
+  ).onfinish = () => {
+    p.remove();
+    if(sid !== moji.session) return;
+    mojiHitHole(hole, big);
+  };
+}
+/* めいちゅう！ ようかい たいさん → もじが スポッと はいる */
+function mojiHitHole(hole, big){
+  hole.done = true;
+  playImpact(); screenShake();
+  const f = $('mojiField');
+  const c = centerIn(f, hole.el);
+  const b = document.createElement('div');
+  b.className = 'burst';
+  b.style.left = c.x + 'px'; b.style.top = c.y + 'px';
+  f.appendChild(b);
+  b.animate(
+    [{ transform: 'translate(-50%,-50%) scale(.3)', opacity: 1 },
+     { transform: 'translate(-50%,-50%) scale(6)', opacity: 0 }],
+    { duration: 360, easing: 'ease-out' }
+  ).onfinish = () => b.remove();
+  hole.el.classList.remove('hole');
+  hole.el.classList.add('okay', 'pop');
+  hole.el.textContent = hole.ch;
+  // とくてん：れべるNの もじ=Nてん（大きなビームなら 2ばい）
+  const pts = (moji.levelIdx + 1) * (big ? 2 : 1);
+  moji.score += pts;
+  ptsPop(f, c, pts);
+  renderMojiTop();
+  // もう つかわない もじタイルは おやすみ
+  document.querySelectorAll('#mojiTiles .moji-tile').forEach(t => {
+    if(t.textContent === hole.ch && !moji.holes.some(h => !h.done && h.ch === hole.ch)){
+      t.disabled = true; t.classList.add('used');
+    }
+  });
+  const sid = moji.session;
+  if(moji.holes.every(h => h.done)){
+    setTimeout(() => { if(sid === moji.session) mojiWordComplete(); }, 350);
+  } else {
+    moji.busy = false;   // まだ かくれた もじが ある
+  }
+}
+/* ことば かんせい！ */
+function mojiWordComplete(){
+  playKira();
+  $('mojiWord').classList.add('done');
+  flash('⭕', 'var(--good)');
+  moji.quota--;
+  renderMojiTop();
+  const sid = moji.session;
+  if(moji.quota <= 0){
+    mojiLevelClear(sid);
+  } else {
+    setTimeout(() => { if(sid === moji.session) mojiNext(); }, 1400);
+  }
+}
+/* れべるクリア！ ばとると同じ「やっつけた」演出 → どうぐえらび */
+function mojiLevelClear(sid){
+  moji.on = false;
+  const wasLast = moji.levelIdx >= LEVELS.length - 1;
+  setTimeout(() => {
+    if(sid !== moji.session) return;
+    flashImage('images/defeat_popup.png');
+    playFanfare();
+    setTimeout(() => { if(sid !== moji.session) return; openItemPick(wasLast ? 'final' : 'level'); }, 1600);
+  }, 1200);
+}
+/* おわり：win=true なら おめでとう画面（ばとると同じ）、false なら げーむおーばー */
+function endMoji(win){
+  moji.on = false;
+  closeItemTray();
+  if(moji.score > (progress.mojiBest || 0)) progress.mojiBest = moji.score;
+  saveProgress();
+  renderTitleStats();
+  if(win){
+    $('clearScore').textContent = moji.score;
+    $('clearBest').textContent = progress.mojiBest || 0;
+    $('clearAccuracy').textContent = mojiAccuracy();
+    $('clearItems').textContent = progress.items.length;
+    $('clearYokai').textContent = totalDefeats();
+    show('cleared');
+  } else {
+    $('mojiOverScore').textContent = moji.score;
+    $('mojiOverBest').textContent = progress.mojiBest || 0;
+    show('mojiOver');
+  }
+}
+function quitMoji(){
+  moji.on = false;
+  moji.session++;
+  closeItemTray();
+  if('speechSynthesis' in window){ try{ speechSynthesis.cancel(); }catch(e){} }
+  renderTitleStats();
+  show('title');
+}
+/* ---- どうぐを もじゲームで つかう（もちものは ばとると共通） ---- */
+function useMojiItem(it){
+  if(it.effect === 'attack'){
+    if(moji.armedAtk) return;                // すでに ためている
+    consumeItem(it.id);
+    moji.armedAtk = true;                    // つぎの せいかいで 大きなもじビーム！
+    $('mojiHero').classList.add('charged');
+    closeItemTray();
+    popItem(it);
+  } else if(it.effect === 'heal'){
+    if(moji.hearts >= MOJI_CFG.hearts) return;
+    consumeItem(it.id);
+    moji.hearts = Math.min(MOJI_CFG.hearts, moji.hearts + 1);
+    renderMojiTop();
+    closeItemTray();
+    popItem(it);
+  } else if(it.effect === 'guard'){
+    if(moji.guardArmed) return;
+    consumeItem(it.id);
+    moji.guardArmed = true;
+    $('mojiHero').classList.add('guarding');
+    closeItemTray();
+    popItem(it);
+  } else if(it.effect === 'hint'){
+    consumeItem(it.id);
+    closeItemTray();
+    popItem(it);
+    // まちがいの もじタイルを 3まい けす
+    const tiles = Array.from(document.querySelectorAll('#mojiTiles .moji-tile')).filter(b => !b.disabled);
+    const wrongs = shuffle(tiles.filter(b => !moji.holes.some(h => !h.done && h.ch === b.textContent)));
+    wrongs.slice(0, 3).forEach(b => { b.disabled = true; b.classList.add('removed'); });
+  }
+  buildItemTray();
+}
+
 /* ---- バトル中断 → ホームへ ---- */
 function goHome(){
   state.session++;             // 走っているタイマーを無効化（タイトルを上書きさせない）
@@ -1179,7 +1537,13 @@ function goHome(){
 /* ---- イベント ---- */
 $('startBtn').onclick = () => { state.mode = 'battle'; $('goBattle').textContent = 'ばとるへ！'; buildHeroGrid(); show('select'); };
 $('shootBtn').onclick = () => { state.mode = 'shoot'; $('goBattle').textContent = 'しゅっぱつ！'; buildHeroGrid(); show('select'); };
-$('goBattle').onclick = () => { if(!state.hero) return; if(state.mode === 'shoot') startShoot(); else startGame(); };
+$('mojiBtn').onclick = () => { state.mode = 'moji'; $('goBattle').textContent = 'しゅっぱつ！'; buildHeroGrid(); show('select'); };
+$('goBattle').onclick = () => {
+  if(!state.hero) return;
+  if(state.mode === 'shoot') startShoot();
+  else if(state.mode === 'moji') startMoji();
+  else startGame();
+};
 $('listenBtn').onclick = () => { if(state.current) speak(state.current.t); };
 $('retryBtn').onclick = startGame;
 $('againBtn').onclick = () => { renderTitleStats(); show('title'); };
@@ -1192,6 +1556,11 @@ $('shootDougu').onclick = openItemTray;
 $('shootListen').onclick = () => { if(shoot.on && shoot.target) speak(shoot.target.t); };
 $('shootRetry').onclick = startShoot;
 $('shootOverHome').onclick = () => { renderTitleStats(); show('title'); };
+$('mojiHome').onclick = quitMoji;
+$('mojiDougu').onclick = openItemTray;
+$('mojiListen').onclick = () => { if(moji.on && moji.word) speak(moji.word.t); };
+$('mojiRetry').onclick = startMoji;
+$('mojiOverHome').onclick = () => { renderTitleStats(); show('title'); };
 $('zukanBtn').onclick = () => { buildZukan(); show('zukan'); };
 $('itemsBtn').onclick  = () => { buildItems(); show('items'); };
 $('zukanBack').onclick = () => show('title');
