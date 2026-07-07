@@ -1198,7 +1198,7 @@ function applyShootHint(){
    えらぶと もじビームで ようかいを たおして もじを とりもどせる。
    ことばは ばとると同じ LEVELS。れべるで 穴のばしょが むずかしくなる。
    ========================================================= */
-const MOJI_CFG = (typeof MOJI !== 'undefined') ? MOJI : { hearts: 5, tiles: 8 };
+const MOJI_CFG = (typeof MOJI !== 'undefined') ? MOJI : { hearts: 5, tiles: 8, maxLen: 5 };
 const moji = {
   on: false, busy: false, hearts: 0, score: 0,
   levelIdx: 0, quota: 0,            // quota: このレベルで あと何この ことばを かんせいさせるか
@@ -1300,7 +1300,8 @@ function mojiBuildTiles(){
 function mojiNext(){
   moji.busy = false;
   $('mojiWord').classList.remove('done');
-  const items = LEVELS[moji.levelIdx].items;
+  // ながすぎる ことばは 出さない（1れつに おさまらない）
+  const items = LEVELS[moji.levelIdx].items.filter(it => it.t.length <= (MOJI_CFG.maxLen || 99));
   let cands = items.filter(it => moji.usedWords.indexOf(it.t) < 0);
   if(!cands.length){ moji.usedWords = []; cands = items; }
   const item = cands[Math.floor(Math.random() * cands.length)];

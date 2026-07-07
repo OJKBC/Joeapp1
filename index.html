@@ -743,12 +743,12 @@
     overflow: hidden; touch-action: manipulation;
   }
   .moji-word {
-    position: absolute; top: 12%; left: 50%; transform: translateX(-50%);
-    display: flex; gap: 6px; z-index: 4;
-    font-size: clamp(24px, calc(min(86vw, 500px) / var(--n) * .55), 44px);
+    position: absolute; top: 13%; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 7px; z-index: 4; align-items: center;
+    font-size: clamp(28px, calc(min(90vw, 540px) / var(--n) * .6), 60px);
   }
   .moji-slot {
-    width: clamp(40px, calc(min(86vw, 500px) / var(--n) - 6px), 76px);
+    width: clamp(48px, calc(min(90vw, 540px) / var(--n) - 7px), 100px);
     aspect-ratio: 1;
     display: flex; align-items: center; justify-content: center;
     font-weight: 900; line-height: 1;
@@ -759,7 +759,7 @@
     box-shadow: 0 4px 0 rgba(0,0,0,.3);
   }
   .moji-slot.hole .ms-yk {
-    font-size: 1.7em; line-height: 1;
+    font-size: 2.2em; line-height: 1;
     filter: drop-shadow(0 4px 5px rgba(0,0,0,.45));
     animation: ykBob 1.2s ease-in-out infinite alternate;
     display: block;
@@ -784,7 +784,7 @@
     from { box-shadow: 0 4px 0 rgba(0,0,0,.3); }
     to   { box-shadow: 0 0 22px 8px var(--gold), 0 4px 0 rgba(0,0,0,.3); background: #fff7d6; }
   }
-  .moji-hero { left: 16%; font-size: clamp(70px, 21vw, 116px); }
+  .moji-hero { left: 20%; font-size: clamp(110px, 33vw, 180px); }
   /* もじビーム（もじが とんでいく） */
   .moji-beam {
     position: absolute; z-index: 6; pointer-events: none;
@@ -1036,8 +1036,8 @@
 </div>
 
 <!-- 設定・もんだいデータ（編集はこちら）-->
-<script src="config.js?v=24"></script>
+<script src="config.js?v=25"></script>
 <!-- ゲームロジック -->
-<script src="game.js?v=24"></script>
+<script src="game.js?v=25"></script>
 </body>
 </html>
