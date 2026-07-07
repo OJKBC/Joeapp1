@@ -216,8 +216,11 @@ function chooseYokai(yk){
   state.pendingYokai = yk;     // 妖怪を決めて、つぎは ステージえらびへ
   openStageSelect();
 }
-/* たたかう ばしょ（背景）を えらぶ */
+/* たたかう ばしょ（背景）を えらぶ（ばとる/しゅーてぃんぐ 共通） */
 function openStageSelect(){
+  $('stageTitle').textContent = state.mode === 'shoot'
+    ? ('🚀 れべる ' + (shoot.levelIdx + 1) + '！ どこで たたかう？')
+    : '⚔️ どこで たたかう？';
   const box = $('stageChoices'); box.innerHTML = '';
   if(typeof BATTLE_BGS === 'undefined' || !BATTLE_BGS.length){ chooseStage(null); return; }
   BATTLE_BGS.forEach(bg => {
@@ -231,6 +234,7 @@ function openStageSelect(){
 }
 function chooseStage(bg){
   state.battleBg = bg;
+  if(state.mode === 'shoot'){ beginShootLevel(bg); return; }
   spawnYokai(state.pendingYokai);
   renderTop();
   show('battle');
@@ -667,11 +671,15 @@ function pickItem(it){
   if(state.finalPick){
     state.finalPicksLeft--;
     if(state.finalPicksLeft <= 0){
-      endGame(true);               // 3こ えらび終わったら おめでとう画面へ
+      // 3こ えらび終わったら おめでとう画面へ
+      if(state.mode === 'shoot') endShoot(true); else endGame(true);
     } else {
       updateFinalCount();          // まだ えらべる：カウンター更新＆選んだ演出
       popItem(it);
     }
+  } else if(state.mode === 'shoot'){
+    shoot.levelIdx++;
+    setTimeout(openStageSelect, 400);   // 次レベルの「どこで たたかう？」へ
   } else {
     state.levelIdx++; state.yokaiIdx++;
     renderTop();
@@ -730,7 +738,8 @@ function ownedItemCounts(){
   return counts;
 }
 function openItemTray(){
-  if(!$('battle').classList.contains('active')) return;   // バトル中だけ
+  // ばとる中 か しゅーてぃんぐ中だけ
+  if(!$('battle').classList.contains('active') && !$('shoot').classList.contains('active')) return;
   buildItemTray();
   $('itemTray').classList.add('show');
 }
@@ -774,6 +783,7 @@ function popItem(it){
   p.classList.remove('show'); void p.offsetWidth; p.classList.add('show');
 }
 function useItem(it){
+  if($('shoot').classList.contains('active')){ useShootItem(it); return; }
   if(!$('battle').classList.contains('active')) return;
   if(it.effect === 'attack'){
     if(state.yokaiHp <= 0) return;          // もう たおれている
@@ -821,40 +831,48 @@ function applyHint(){
    ことばは ばとると おなじ LEVELS。せいせきも おなじ stats に記録。
    ========================================================= */
 const SHOOT_CFG = (typeof SHOOT !== 'undefined') ? SHOOT
-  : { hearts: 5, baseFall: 14, minFall: 6, speedStep: 0.35, unlockEvery: 4 };
+  : { hearts: 5, baseFall: 13, minFall: 6, levelStep: 0.9 };
 const shoot = {
   on: false, busy: false, hearts: 0, score: 0,
-  enemies: [], target: null, maxLv: 0,
+  levelIdx: 0, quota: 0,            // quota: このレベルで あと何体 うちおとすか
+  attempts: 0, correctCount: 0,     // せいかいりつ用
+  armedAtk: false,                  // こうげきどうぐ：つぎの めいちゅうで 大きなビーム（2たいぶん・とくてん2ばい）
+  guardArmed: false,                // ガードどうぐ：つぎの しっぱいで ❤️が へらない
+  hintReady: false,                 // ひんとどうぐ：まちがいの ようかい2体が きえる
+  enemies: [], target: null,
   raf: 0, last: 0,
   session: 0   // ホームに戻る/やりなおすたびに +1。古いタイマーを無効化
 };
-/* すこあに応じて とうじょうする ことばのレベル上限（4てんごとに 1つ ひろがる） */
-function shootMaxLv(){
-  return Math.min(LEVELS.length - 1, 1 + Math.floor(shoot.score / SHOOT_CFG.unlockEvery));
+function recordShootAnswer(correct){
+  const key = (LEVELS[shoot.levelIdx].name || ('Lv' + (shoot.levelIdx + 1))) + '::' + shoot.target.t;
+  bumpStat(key, shoot.target.t, shoot.levelIdx + 1, correct);
+  shoot.attempts++;
+  if(correct) shoot.correctCount++;
 }
-/* いま つかえる ことば ぜんぶ（どのレベル出身かを li に持つ） */
-function shootPool(){
-  const pool = [];
-  for(let i = 0; i <= shoot.maxLv; i++){
-    LEVELS[i].items.forEach(it => pool.push({ t: it.t, li: i }));
-  }
-  return pool;
+function shootAccuracy(){
+  if(!shoot.attempts) return 0;
+  return Math.round(shoot.correctCount / shoot.attempts * 100);
 }
-function recordShootAnswer(it, correct){
-  const key = (LEVELS[it.li].name || ('Lv' + (it.li + 1))) + '::' + it.t;
-  bumpStat(key, it.t, it.li + 1, correct);
-}
+/* しゅーてぃんぐ開始：ばとると同じ れべる1〜9。まず「どこで たたかう？」へ */
 function startShoot(){
   shoot.session++;
-  shoot.on = true; shoot.busy = false;
+  shoot.levelIdx = 0;
   shoot.hearts = SHOOT_CFG.hearts; shoot.score = 0;
-  shoot.maxLv = shootMaxLv();
-  // 背景は ばとるステージから ランダムに1枚
+  shoot.attempts = 0; shoot.correctCount = 0;
+  openStageSelect();
+}
+/* れべる開始（ステージを えらんだあと chooseStage から呼ばれる） */
+function beginShootLevel(bg){
+  shoot.on = true; shoot.busy = false;
+  shoot.quota = LEVELS[shoot.levelIdx].hp || CONFIG.yokaiHp;   // ばとるの妖怪HPと同じ数
+  shoot.armedAtk = false; shoot.guardArmed = false; shoot.hintReady = false;
   const f = $('shootField');
-  if(typeof BATTLE_BGS !== 'undefined' && BATTLE_BGS.length){
-    f.style.backgroundImage = "url('" + BATTLE_BGS[Math.floor(Math.random() * BATTLE_BGS.length)] + "')";
-  }
+  const chosen = bg || ((typeof BATTLE_BGS !== 'undefined' && BATTLE_BGS.length)
+    ? BATTLE_BGS[Math.floor(Math.random() * BATTLE_BGS.length)] : null);
+  if(chosen) f.style.backgroundImage = "url('" + chosen + "')";
   if(state.hero) setFace($('shootHero'), state.hero);
+  $('shootHero').classList.remove('charged', 'guarding');
+  closeItemTray();
   renderShootTop();
   show('shoot');
   shootWave();
@@ -866,6 +884,7 @@ function renderShootTop(){
   let h = '';
   for(let i = 0; i < SHOOT_CFG.hearts; i++) h += i < shoot.hearts ? '❤️' : '🤍';
   $('shootHearts').textContent = h;
+  $('shootQuota').textContent = Math.max(0, shoot.quota);
   $('shootScore').textContent = shoot.score;
 }
 function clearShootEnemies(){
@@ -876,21 +895,17 @@ function clearShootEnemies(){
 function shootWave(){
   clearShootEnemies();
   shoot.busy = false;
-  const pool = shootPool();
-  // ことば：あたらしいレベルの ことばが 出やすく（50%）
-  const topBand = pool.filter(w => w.li === shoot.maxLv);
-  const target = (Math.random() < 0.5 && topBand.length)
-    ? topBand[Math.floor(Math.random() * topBand.length)]
-    : pool[Math.floor(Math.random() * pool.length)];
+  // ことばは いまのレベルのもの（ばとると同じ もんだいデータ）
+  const items = LEVELS[shoot.levelIdx].items;
+  const target = items[Math.floor(Math.random() * items.length)];
   shoot.target = target;
-  // まちがい2つ（おなじ文字数を ゆうせん。おなじ ことばは 出さない）
-  const seen = { [target.t]: 1 };
-  const others = pool.filter(w => !seen[w.t] && (seen[w.t] = 1));
+  // まちがい2つ（おなじ文字数を ゆうせん）
+  const others = items.filter(w => w.t !== target.t);
   const sameLen = shuffle(others.filter(w => w.t.length === target.t.length));
   const diffLen = shuffle(others.filter(w => w.t.length !== target.t.length));
   const words = shuffle([target].concat(sameLen.concat(diffLen).slice(0, 2)));
-  // おちる はやさ：すこあで だんだん はやく
-  const dur = Math.max(SHOOT_CFG.minFall, SHOOT_CFG.baseFall - shoot.score * SHOOT_CFG.speedStep);
+  // おちる はやさ：れべるが あがるほど はやい
+  const dur = Math.max(SHOOT_CFG.minFall, SHOOT_CFG.baseFall - shoot.levelIdx * SHOOT_CFG.levelStep);
   const lanes = shuffle([17, 50, 83]);   // 3れーん（よこ位置%）
   const f = $('shootField');
   words.forEach((w, i) => {
@@ -906,6 +921,7 @@ function shootWave(){
     el.onpointerdown = () => shootTap(en);
     shoot.enemies.push(en);
   });
+  if(shoot.hintReady) applyShootHint();   // ひんとどうぐが たまっていたら すぐ きく
   speak(target.t);
 }
 function shootLoop(now){
@@ -927,15 +943,22 @@ function shootLanded(en){
   if(en.item.t === shoot.target.t){
     // せいかいの ようかいを のがした → こうげきされる！
     shoot.busy = true;
-    recordShootAnswer(shoot.target, false);
-    playImpact(); screenShake();
-    flash('❌', 'var(--heart)');
-    shoot.hearts--;
-    renderShootTop();
+    recordShootAnswer(false);
+    const guarded = shoot.guardArmed;
+    shoot.guardArmed = false;
+    $('shootHero').classList.remove('guarding');
+    if(guarded){
+      flash('🛡️', 'var(--good)');   // まもった！ ハートは へらない
+    } else {
+      playImpact(); screenShake();
+      flash('❌', 'var(--heart)');
+      shoot.hearts--;
+      renderShootTop();
+    }
     const sid = shoot.session;
     setTimeout(() => {
       if(sid !== shoot.session) return;
-      if(shoot.hearts <= 0) endShoot(); else shootWave();
+      if(shoot.hearts <= 0) endShoot(false); else shootWave();
     }, 900);
   } else {
     // まちがいの ようかいは しずかに きえる（のこった正解が ヒントになる）
@@ -956,37 +979,47 @@ function shootTap(en){
   if(!shoot.on || shoot.busy) return;
   if(en.item.t === shoot.target.t){
     shoot.busy = true;
-    recordShootAnswer(shoot.target, true);
+    recordShootAnswer(true);
     shootFire(en);
   } else {
-    recordShootAnswer(shoot.target, false);
-    flash('❌', 'var(--heart)');
+    recordShootAnswer(false);
     en.el.classList.add('hit');
     removeShootEnemy(en, true);
-    shoot.hearts--;
-    renderShootTop();
+    const guarded = shoot.guardArmed;
+    shoot.guardArmed = false;
+    $('shootHero').classList.remove('guarding');
+    if(guarded){
+      flash('🛡️', 'var(--good)');   // まもった！ ハートは へらない
+    } else {
+      flash('❌', 'var(--heart)');
+      shoot.hearts--;
+      renderShootTop();
+    }
     if(shoot.hearts <= 0){
       shoot.busy = true;
       const sid = shoot.session;
-      setTimeout(() => { if(sid === shoot.session) endShoot(); }, 700);
+      setTimeout(() => { if(sid === shoot.session) endShoot(false); }, 700);
     } else {
       speak(shoot.target.t);   // もういちど きかせてあげる
     }
   }
 }
-/* ヒーローが ビームで うちおとす */
+/* ヒーローが ビームで うちおとす（こうげきどうぐを ためていたら 大きなビーム） */
 function shootFire(en){
-  playBeam('hero');
+  const big = shoot.armedAtk;
+  shoot.armedAtk = false;
+  $('shootHero').classList.remove('charged');
+  if(big) playHadouken(); else playBeam('hero');
   const f = $('shootField');
   const s = pointIn(f, $('shootHero'), 0.5, 0.15);
   const e = pointIn(f, en.el, 0.5, 0.4);
   const p = document.createElement('div');
-  p.className = 'projectile hero';
+  p.className = 'projectile hero' + (big ? ' big' : '');
   p.style.left = s.x + 'px'; p.style.top = s.y + 'px';
   const col = state.hero && state.hero.col;
   if(col){
     p.style.background = `radial-gradient(ellipse at 72% 50%, #fff, ${col} 44%, ${col}00 78%)`;
-    p.style.boxShadow = `0 0 26px 10px ${col}c0`;
+    p.style.boxShadow = big ? `0 0 60px 26px ${col}d0` : `0 0 26px 10px ${col}c0`;
   }
   f.appendChild(p);
   const dx = e.x - s.x, dy = e.y - s.y;
@@ -995,18 +1028,18 @@ function shootFire(en){
   const ty = `calc(-50% ${dy>=0?'+':'-'} ${Math.abs(dy)}px)`;
   const sid = shoot.session;
   const anim = p.animate(
-    [{ transform: `translate(-50%,-50%) rotate(${ang}deg) scale(.5)`, opacity: .6 },
-     { transform: `translate(${tx}, ${ty}) rotate(${ang}deg) scale(1)`, opacity: 1 }],
-    { duration: 240, easing: 'cubic-bezier(.45,0,.75,1)' }
+    [{ transform: `translate(-50%,-50%) rotate(${ang}deg) scale(${big ? .7 : .5})`, opacity: .6 },
+     { transform: `translate(${tx}, ${ty}) rotate(${ang}deg) scale(${big ? 1.25 : 1})`, opacity: 1 }],
+    { duration: big ? 320 : 240, easing: 'cubic-bezier(.45,0,.75,1)' }
   );
   anim.onfinish = () => {
     p.remove();
     if(sid !== shoot.session) return;
-    shootHit(en);
+    shootHit(en, big);
   };
 }
-/* めいちゅう！ ばくはつ → すこあ加算 → つぎのもんだい */
-function shootHit(en){
+/* めいちゅう！ ばくはつ → とくてん加算（むずかしい ことばほど 高得点） → つぎへ */
+function shootHit(en, big){
   const f = $('shootField');
   const c = centerIn(f, en.el);
   const b = document.createElement('div');
@@ -1019,40 +1052,118 @@ function shootHit(en){
     { duration: 380, easing: 'ease-out' }
   ).onfinish = () => b.remove();
   playImpact(); screenShake();
-  shoot.score++;
-  const prevLv = shoot.maxLv;
-  shoot.maxLv = shootMaxLv();
+  // とくてん：れべる1のことば=1てん…れべる9=9てん。大きなビームなら 2ばい＆2たいぶん
+  const pts = (shoot.levelIdx + 1) * (big ? 2 : 1);
+  shoot.score += pts;
+  shoot.quota -= (big ? 2 : 1);
+  ptsPop(f, c, pts);
   renderShootTop();
   clearShootEnemies();
   flash('⭕', 'var(--good)');
   const sid = shoot.session;
-  if(shoot.maxLv > prevLv){
-    // あたらしいレベルの ことばが とうじょう！
-    setTimeout(() => { if(sid === shoot.session) flashText('れべる あっぷ！', 'var(--gold)'); }, 550);
-    setTimeout(() => { if(sid === shoot.session) shootWave(); }, 1500);
+  if(shoot.quota <= 0){
+    shootLevelClear(sid);
   } else {
     setTimeout(() => { if(sid === shoot.session) shootWave(); }, 750);
   }
 }
-function endShoot(){
+/* とくてんの「+N」が とびだす */
+function ptsPop(f, c, pts){
+  const d = document.createElement('div');
+  d.className = 'pts-pop';
+  d.textContent = '+' + pts;
+  d.style.left = c.x + 'px'; d.style.top = c.y + 'px';
+  f.appendChild(d);
+  d.animate(
+    [{ transform: 'translate(-50%,-50%) scale(.5)', opacity: 0 },
+     { transform: 'translate(-50%,-90%) scale(1.2)', opacity: 1, offset: .25 },
+     { transform: 'translate(-50%,-220%) scale(1)', opacity: 0 }],
+    { duration: 900, easing: 'ease-out' }
+  ).onfinish = () => d.remove();
+}
+/* れべるクリア！ ばとると同じ「やっつけた」演出 → どうぐえらび */
+function shootLevelClear(sid){
+  shoot.on = false;                 // 落下ループ停止
+  cancelAnimationFrame(shoot.raf);
+  const wasLast = shoot.levelIdx >= LEVELS.length - 1;
+  setTimeout(() => {
+    if(sid !== shoot.session) return;
+    flashImage('images/defeat_popup.png');   // 「やっつけた」演出カード
+    playFanfare();                           // パンパカパーン！
+    setTimeout(() => { if(sid !== shoot.session) return; openItemPick(wasLast ? 'final' : 'level'); }, 1600);
+  }, 700);
+}
+/* おわり：win=true なら おめでとう画面（ばとると同じ）、false なら げーむおーばー */
+function endShoot(win){
   shoot.on = false;
   cancelAnimationFrame(shoot.raf);
   clearShootEnemies();
+  closeItemTray();
   if(shoot.score > (progress.shootBest || 0)) progress.shootBest = shoot.score;
   saveProgress();
   renderTitleStats();
-  $('shootOverScore').textContent = shoot.score;
-  $('shootOverBest').textContent = progress.shootBest || 0;
-  show('shootOver');
+  if(win){
+    $('clearScore').textContent = shoot.score;
+    $('clearBest').textContent = progress.shootBest || 0;
+    $('clearAccuracy').textContent = shootAccuracy();
+    $('clearItems').textContent = progress.items.length;
+    $('clearYokai').textContent = totalDefeats();
+    show('cleared');
+  } else {
+    $('shootOverScore').textContent = shoot.score;
+    $('shootOverBest').textContent = progress.shootBest || 0;
+    show('shootOver');
+  }
 }
 function quitShoot(){
   shoot.on = false;
   shoot.session++;
   cancelAnimationFrame(shoot.raf);
   clearShootEnemies();
+  closeItemTray();
   if('speechSynthesis' in window){ try{ speechSynthesis.cancel(); }catch(e){} }
   renderTitleStats();
   show('title');
+}
+/* ---- どうぐを しゅーてぃんぐで つかう（もちものは ばとると共通） ---- */
+function useShootItem(it){
+  if(it.effect === 'attack'){
+    if(shoot.armedAtk) return;               // すでに ためている
+    consumeItem(it.id);
+    shoot.armedAtk = true;                   // つぎの めいちゅうで 大きなビーム！
+    $('shootHero').classList.add('charged');
+    closeItemTray();
+    popItem(it);
+  } else if(it.effect === 'heal'){
+    if(shoot.hearts >= SHOOT_CFG.hearts) return;   // 満タンなら使わない
+    consumeItem(it.id);
+    shoot.hearts = Math.min(SHOOT_CFG.hearts, shoot.hearts + 1);
+    renderShootTop();
+    closeItemTray();
+    popItem(it);
+  } else if(it.effect === 'guard'){
+    if(shoot.guardArmed) return;             // すでに ガード中
+    consumeItem(it.id);
+    shoot.guardArmed = true;
+    $('shootHero').classList.add('guarding');
+    closeItemTray();
+    popItem(it);
+  } else if(it.effect === 'hint'){
+    consumeItem(it.id);
+    shoot.hintReady = true;
+    closeItemTray();
+    popItem(it);
+    applyShootHint();                        // いまの もんだいにも すぐ きく
+  }
+  buildItemTray();
+}
+/* ひんと：まちがいの ようかい2体が きえる（のこるのは せいかいだけ） */
+function applyShootHint(){
+  if(!shoot.hintReady) return;
+  const wrongs = shoot.enemies.filter(e => e.item.t !== shoot.target.t);
+  if(!wrongs.length) return;
+  wrongs.forEach(e => removeShootEnemy(e, true));
+  shoot.hintReady = false;
 }
 
 /* ---- バトル中断 → ホームへ ---- */
@@ -1077,6 +1188,7 @@ $('douguBtn').onclick = openItemTray;
 $('trayClose').onclick = closeItemTray;
 $('itemTray').onclick = (e) => { if(e.target === $('itemTray')) closeItemTray(); };  // 背景タップで閉じる
 $('shootHome').onclick = quitShoot;
+$('shootDougu').onclick = openItemTray;
 $('shootListen').onclick = () => { if(shoot.on && shoot.target) speak(shoot.target.t); };
 $('shootRetry').onclick = startShoot;
 $('shootOverHome').onclick = () => { renderTitleStats(); show('title'); };

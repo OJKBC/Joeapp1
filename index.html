@@ -543,7 +543,21 @@
   .home-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 
   /* title sub-menu */
-  .title-menu { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; }
+  .title-menu { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; }
+  .menu-label {
+    text-align: left; font-size: 14px; font-weight: 900; letter-spacing: 1px;
+    color: var(--paper); opacity: .92; margin: 2px 0 -2px 10px;
+    text-shadow: 0 2px 0 rgba(0,0,0,.5);
+  }
+  .menu-label + .menu-label, .menu-row + .menu-label { margin-top: 6px; }
+  /* しゅーてぃんぐは オレンジの大ボタン（ばとると同格の「げーむ」） */
+  .btn-shoot {
+    background: linear-gradient(180deg, #ff9a3d 0%, #e06a10 100%);
+    box-shadow: 0 6px 0 #b3540c, 0 10px 18px rgba(0,0,0,.35);
+  }
+  .btn-shoot:active { box-shadow: 0 1px 0 #b3540c, 0 4px 10px rgba(0,0,0,.3); }
+  .menu-row { display: flex; gap: 10px; }
+  .menu-row .btn-sub { flex: 1; font-size: 15px; padding: 12px 8px; white-space: nowrap; }
   .title-stats {
     width: 100%; max-width: 320px;
     display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;
@@ -707,6 +721,17 @@
   .shoot-msg { padding: 8px 14px; font-size: clamp(16px, 4.6vw, 20px); }
   .shoot-msg #shootMsg { flex: 1; text-align: center; }
   #shootOver { justify-content: center; gap: 18px; }
+  /* どうぐの ため/ガードの ひかりは しゅーてぃんぐの ヒーローにも */
+  .shoot-hero.charged { animation: chargePulse .7s ease-in-out infinite alternate; }
+  .shoot-hero.guarding { animation: guardPulse .7s ease-in-out infinite alternate; }
+  /* とくてんの「+N」ポップ */
+  .pts-pop {
+    position: absolute; z-index: 7; pointer-events: none;
+    transform: translate(-50%,-50%);
+    font-weight: 900; font-size: clamp(30px, 9vw, 48px); color: var(--gold);
+    -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill;
+    text-shadow: 0 3px 0 rgba(0,0,0,.45);
+  }
 </style>
 </head>
 <body>
@@ -719,11 +744,15 @@
       <span class="mini-pill">👹 <b id="titleYokai">0</b></span>
       <span class="mini-pill">🚀 <b id="titleShoot">0</b></span>
     </div>
-    <button class="btn" id="startBtn">はじめる</button>
     <div class="title-menu">
-      <button class="btn btn-sub" id="shootBtn">🚀 しゅーてぃんぐ</button>
-      <button class="btn btn-sub" id="zukanBtn">📖 ようかいずかん</button>
-      <button class="btn btn-sub" id="itemsBtn">🎒 ばとるあいてむ</button>
+      <div class="menu-label">🎮 げーむ</div>
+      <button class="btn" id="startBtn">⚔️ ばとる</button>
+      <button class="btn btn-shoot" id="shootBtn">🚀 しゅーてぃんぐ</button>
+      <div class="menu-label">📚 これくしょん</div>
+      <div class="menu-row">
+        <button class="btn btn-sub" id="zukanBtn">📖 ようかいずかん</button>
+        <button class="btn btn-sub" id="itemsBtn">🎒 ばとるあいてむ</button>
+      </div>
     </div>
   </section>
 
@@ -746,7 +775,7 @@
 
   <!-- STAGE SELECT（たたかう ばしょを えらぶ） -->
   <section id="stageSelect" class="screen">
-    <div class="stage-title">⚔️ どこで たたかう？</div>
+    <div class="stage-title" id="stageTitle">⚔️ どこで たたかう？</div>
     <div class="stage-grid" id="stageChoices"></div>
   </section>
 
@@ -790,8 +819,10 @@
       <button class="home-btn" id="shootHome" aria-label="ほーむにもどる">🏠</button>
       <div class="shoot-hud">
         <span id="shootHearts"></span>
-        <span>⭐ <span id="shootScore">0</span></span>
+        <span>👹<span id="shootQuota">0</span></span>
+        <span>⭐<span id="shootScore">0</span></span>
       </div>
+      <button class="dougu-btn" id="shootDougu">🎒</button>
     </div>
     <div class="shoot-field" id="shootField">
       <div class="shoot-hero" id="shootHero">🦸</div>
@@ -881,8 +912,8 @@
 </div>
 
 <!-- 設定・もんだいデータ（編集はこちら）-->
-<script src="config.js?v=22"></script>
+<script src="config.js?v=23"></script>
 <!-- ゲームロジック -->
-<script src="game.js?v=22"></script>
+<script src="game.js?v=23"></script>
 </body>
 </html>
