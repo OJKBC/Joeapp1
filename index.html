@@ -757,9 +757,10 @@
     background: var(--paper); color: var(--ink);
     border: 3px solid var(--ink); border-radius: 14px;
     box-shadow: 0 4px 0 rgba(0,0,0,.3);
+    position: relative; z-index: 2;   /* 大きな妖怪より 文字を まえに */
   }
   .moji-slot.hole .ms-yk {
-    font-size: 2.2em; line-height: 1;
+    font-size: 2.9em; line-height: 1;
     filter: drop-shadow(0 4px 5px rgba(0,0,0,.45));
     animation: ykBob 1.2s ease-in-out infinite alternate;
     display: block;
@@ -784,7 +785,7 @@
     from { box-shadow: 0 4px 0 rgba(0,0,0,.3); }
     to   { box-shadow: 0 0 22px 8px var(--gold), 0 4px 0 rgba(0,0,0,.3); background: #fff7d6; }
   }
-  .moji-hero { left: 20%; font-size: clamp(110px, 33vw, 180px); }
+  .moji-hero { left: 24%; font-size: clamp(150px, 45vw, 250px); }
   /* もじビーム（もじが とんでいく） */
   .moji-beam {
     position: absolute; z-index: 6; pointer-events: none;
@@ -1036,8 +1037,8 @@
 </div>
 
 <!-- 設定・もんだいデータ（編集はこちら）-->
-<script src="config.js?v=25"></script>
+<script src="config.js?v=26"></script>
 <!-- ゲームロジック -->
-<script src="game.js?v=25"></script>
+<script src="game.js?v=26"></script>
 </body>
 </html>
