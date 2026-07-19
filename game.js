@@ -168,9 +168,10 @@ function buildHeroGrid(){
     c.className = 'hero-card';
     c.innerHTML = '<span class="face">'+faceHTML(h)+'</span><div class="nm">'+h.nm+'</div>';
     c.onclick = () => {
-      document.querySelectorAll('.hero-card').forEach(x=>x.classList.remove('sel'));
-      c.classList.add('sel'); state.hero = h;
-      $('goBattle').disabled = false; $('goBattle').style.opacity = 1;
+      state.hero = h;
+      if(state.mode === 'shoot') startShoot();
+      else if(state.mode === 'moji') startMoji();
+      else startGame();
     };
     g.appendChild(c);
   });
@@ -1536,15 +1537,9 @@ function goHome(){
 }
 
 /* ---- イベント ---- */
-$('startBtn').onclick = () => { state.mode = 'battle'; $('goBattle').textContent = 'ばとるへ！'; buildHeroGrid(); show('select'); };
-$('shootBtn').onclick = () => { state.mode = 'shoot'; $('goBattle').textContent = 'しゅっぱつ！'; buildHeroGrid(); show('select'); };
-$('mojiBtn').onclick = () => { state.mode = 'moji'; $('goBattle').textContent = 'しゅっぱつ！'; buildHeroGrid(); show('select'); };
-$('goBattle').onclick = () => {
-  if(!state.hero) return;
-  if(state.mode === 'shoot') startShoot();
-  else if(state.mode === 'moji') startMoji();
-  else startGame();
-};
+$('startBtn').onclick = () => { state.mode = 'battle'; buildHeroGrid(); show('select'); };
+$('shootBtn').onclick = () => { state.mode = 'shoot'; buildHeroGrid(); show('select'); };
+$('mojiBtn').onclick = () => { state.mode = 'moji'; buildHeroGrid(); show('select'); };
 $('listenBtn').onclick = () => { if(state.current) speak(state.current.t); };
 $('retryBtn').onclick = startGame;
 $('againBtn').onclick = () => { renderTitleStats(); show('title'); };
