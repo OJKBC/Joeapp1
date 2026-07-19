@@ -634,6 +634,10 @@
   /* sub screens (zukan / どうぐ) */
   .sub-screen { justify-content: flex-start; gap: 14px; padding-top: 0; overflow-y: auto; }
   .sub-head { font-size: 22px; font-weight: 900; }
+  .sub-head-logo {
+    display:block; width:auto; height:46px; max-width:calc(100% - 106px); object-fit:contain;
+    filter:drop-shadow(0 3px 4px rgba(0,0,0,.7));
+  }
   /* 上部バー：画面全体がスクロールしても「もどる」は上に貼り付く（sticky） */
   .sub-bar {
     position: sticky; top: 0; z-index: 3;
@@ -1085,7 +1089,7 @@
   <section id="zukan" class="screen sub-screen">
     <div class="sub-bar">
       <button class="btn-back" id="zukanBack">← もどる</button>
-      <div class="sub-head">📖 ようかいずかん</div>
+      <img class="sub-head-logo" src="images/menu_zukan_generated.png" alt="ようかいずかん" />
     </div>
     <div class="zukan-grid" id="zukanGrid"></div>
   </section>
@@ -1094,7 +1098,7 @@
   <section id="items" class="screen sub-screen">
     <div class="sub-bar">
       <button class="btn-back" id="itemsBack">← もどる</button>
-      <div class="sub-head">🎒 ばとるあいてむ</div>
+      <img class="sub-head-logo" src="images/menu_items_generated.png" alt="ばとるどうぐ" />
     </div>
     <div class="item-grid" id="itemGrid"></div>
   </section>
