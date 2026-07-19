@@ -125,14 +125,8 @@
     justify-content: flex-start; gap: 16px; overflow-y: auto;
     background: url('images/yokai_select_bg.png') center / cover no-repeat, var(--night-1);
   }
-  /* れべる（画像）＋ 数字 */
-  .ys-level { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 4px; }
-  .ys-level-img { height: clamp(46px, 13vw, 68px); width: auto; }
-  .ys-level-num {
-    font-size: clamp(44px, 13vw, 68px); font-weight: 900; line-height: 1;
-    color: var(--gold); -webkit-text-stroke: 2.5px var(--ink);
-    paint-order: stroke fill; text-shadow: 0 4px 0 rgba(0,0,0,.45);
-  }
+  /* ゲーム開始前の共通れべる表示 */
+  .ys-level { margin-top: 4px; }
   /* どの ようかいと たたかう？（画像バナー） */
   .ys-title { width: min(94%, 480px); height: auto; filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
   .yokai-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: stretch; width: 100%; }
@@ -158,7 +152,12 @@
     -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; text-shadow: 0 4px 0 rgba(0,0,0,.4);
   }
   .stage-heading { width:100%; display:flex; flex-direction:column; align-items:center; gap:2px; }
-  .stage-mode-level { min-height:16px; color:var(--gold); font-size:14px; font-weight:900; text-shadow:0 2px 0 rgba(0,0,0,.6); }
+  .stage-mode-level {
+    min-height:28px; padding:5px 16px 6px; border:1px solid rgba(255,210,63,.72); border-radius:999px;
+    color:var(--gold); background:linear-gradient(180deg,rgba(74,35,145,.94),rgba(24,12,52,.96));
+    box-shadow:inset 0 0 10px rgba(195,133,255,.2),0 3px 8px rgba(0,0,0,.4);
+    font-size:15px; font-weight:900; line-height:1; text-shadow:0 2px 0 rgba(0,0,0,.6);
+  }
   .stage-title-logo { display:block; width:min(94%,500px); height:auto; max-height:112px; object-fit:contain; filter:drop-shadow(0 5px 6px rgba(0,0,0,.65)); }
   .stage-grid {
     width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
@@ -201,8 +200,8 @@
     filter: drop-shadow(0 6px 6px rgba(0,0,0,.4));
     transition: transform .12s ease;
   }
-  .enemy-mon { bottom: 10%; right: 3%; font-size: clamp(104px, 33vw, 170px); }
-  .hero-mon  { bottom: 8%; left: 2%; font-size: clamp(110px, 35vw, 182px); }
+  .enemy-mon { bottom: 1%; right: 3%; font-size: clamp(104px, 33vw, 150px); }
+  .hero-mon  { bottom: 1%; left: 2%; font-size: clamp(110px, 35vw, 150px); }
 
   /* こうげきどうぐを ためている あいだ ヒーローが ひかる */
   .mon.charged { animation: chargePulse .7s ease-in-out infinite alternate; }
@@ -275,8 +274,11 @@
     border: 1px solid var(--ink); border-radius: 6px; overflow: hidden;
   }
   .hpbar > i { display: block; height: 100%; background: linear-gradient(#8dec5a, #3fae00); transition: width .3s ease; }
-  .statline { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 4px; min-height: 20px; }
-  .info .hearts { font-size: clamp(12px, 4vw, 16px); letter-spacing: 0; min-width: 0; overflow: hidden; white-space: nowrap; }
+  .statline { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 4px; min-height: 11px; }
+  .info .hearts {
+    flex: none; min-width: 0; height: 11px; overflow: visible; white-space: nowrap;
+    font-size: 11px; line-height: 11px; letter-spacing: -1px;
+  }
   .info .score { font-size: 13px; font-weight: 800; color: #c79b14; white-space: nowrap; flex: none; }
 
   /* メッセージ枠（ポケモン下部のテキスト） */
@@ -948,10 +950,7 @@
 
   <!-- YOKAI SELECT（レベルごとに たたかう相手をえらぶ） -->
   <section id="yokaiSelect" class="screen">
-    <div class="ys-level">
-      <img class="ys-level-img" src="images/yokai_select_level.png" alt="れべる" />
-      <span class="ys-level-num" id="yokaiSelLv">1</span>
-    </div>
+    <div class="ys-level stage-mode-level" id="yokaiSelLv">れべる 1 / 9</div>
     <img class="ys-title" src="images/yokai_select_title.png" alt="どの ようかいと たたかう？" />
     <div class="yokai-row" id="yokaiChoices"></div>
   </section>
@@ -969,7 +968,7 @@
   <section id="battle" class="screen">
     <div class="battle-top">
       <button class="home-btn" id="homeBtn" aria-label="ほーむにもどる">🏠</button>
-      <button class="dougu-btn" id="douguBtn">🎒 どうぐ</button>
+      <button class="dougu-btn" id="douguBtn" aria-label="ばとるどうぐ">⚔️ どうぐ</button>
     </div>
     <div class="field">
       <div class="info enemy">
@@ -1008,7 +1007,7 @@
         <span>👹<span id="shootQuota">0</span></span>
         <span>⭐<span id="shootScore">0</span></span>
       </div>
-      <button class="dougu-btn" id="shootDougu">🎒</button>
+      <button class="dougu-btn" id="shootDougu" aria-label="ばとるどうぐ">⚔️ どうぐ</button>
     </div>
     <div class="shoot-field" id="shootField">
       <div class="shoot-hero" id="shootHero">🦸</div>
@@ -1038,7 +1037,7 @@
         <span>🔤<span id="mojiQuota">0</span></span>
         <span>⭐<span id="mojiScore">0</span></span>
       </div>
-      <button class="dougu-btn" id="mojiDougu">🎒</button>
+      <button class="dougu-btn" id="mojiDougu" aria-label="ばとるどうぐ">⚔️ どうぐ</button>
     </div>
     <div class="moji-field" id="mojiField">
       <div class="moji-word" id="mojiWord"></div>

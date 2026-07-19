@@ -202,7 +202,7 @@ function startLevel(){
 /* このレベルの妖怪グループから1体えらばせる（案②） */
 function openYokaiSelect(){
   const group = (typeof YOKAI_BY_LEVEL !== 'undefined' && YOKAI_BY_LEVEL[state.levelIdx]) || YOKAI.map(y => y.id);
-  $('yokaiSelLv').textContent = state.levelIdx + 1;
+  $('yokaiSelLv').textContent = 'れべる ' + (state.levelIdx + 1) + ' / ' + LEVELS.length;
   const box = $('yokaiChoices'); box.innerHTML = '';
   group.forEach(id => {
     const yk = yokaiById(id);
@@ -221,9 +221,8 @@ function chooseYokai(yk){
 }
 /* たたかう ばしょ（背景）を えらぶ（ばとる/しゅーてぃんぐ 共通） */
 function openStageSelect(){
-  $('stageModeLevel').textContent =
-    state.mode === 'shoot' ? ('れべる ' + (shoot.levelIdx + 1)) :
-    state.mode === 'moji'  ? ('れべる ' + (moji.levelIdx + 1)) : '';
+  const li = state.mode === 'shoot' ? shoot.levelIdx : state.mode === 'moji' ? moji.levelIdx : state.levelIdx;
+  $('stageModeLevel').textContent = 'れべる ' + (li + 1) + ' / ' + LEVELS.length;
   const box = $('stageChoices'); box.innerHTML = '';
   if(typeof BATTLE_BGS === 'undefined' || !BATTLE_BGS.length){ chooseStage(null); return; }
   BATTLE_BGS.forEach(bg => {
