@@ -221,10 +221,9 @@ function chooseYokai(yk){
 }
 /* たたかう ばしょ（背景）を えらぶ（ばとる/しゅーてぃんぐ 共通） */
 function openStageSelect(){
-  $('stageTitle').textContent =
-    state.mode === 'shoot' ? ('🚀 れべる ' + (shoot.levelIdx + 1) + '！ どこで たたかう？') :
-    state.mode === 'moji'  ? ('🔤 れべる ' + (moji.levelIdx + 1) + '！ どこで たたかう？') :
-    '⚔️ どこで たたかう？';
+  $('stageModeLevel').textContent =
+    state.mode === 'shoot' ? ('れべる ' + (shoot.levelIdx + 1)) :
+    state.mode === 'moji'  ? ('れべる ' + (moji.levelIdx + 1)) : '';
   const box = $('stageChoices'); box.innerHTML = '';
   if(typeof BATTLE_BGS === 'undefined' || !BATTLE_BGS.length){ chooseStage(null); return; }
   BATTLE_BGS.forEach(bg => {
