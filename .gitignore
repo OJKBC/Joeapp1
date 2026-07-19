@@ -1,2 +1,21 @@
 # macOS
 .DS_Store
+
+# 機密情報（このリポジトリは public。絶対にコミットしないこと）
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+secrets.*
+credentials.*
+*_secret.*
+*.credentials.json
+service-account*.json
+
+# 作業用・一時ファイル
+*.log
+tmp/
+scratch/
+node_modules/
